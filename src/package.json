@@ -2,9 +2,9 @@
   "name": "src",
   "version": "1.0.0",
   "description": "",
-  "main": "app.ts",
+  "main": "app.js",
   "scripts": {
-    "start": "nodemon app.ts",
+    "start": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -20,7 +20,6 @@
     "mysql2": "^3.9.2",
     "sequelize": "^6.37.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
-    "ts-node": "^10.9.2"
+    "swagger-ui-express": "^5.0.0"
   }
 }

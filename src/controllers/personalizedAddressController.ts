@@ -3,6 +3,7 @@ import { Response } from "express";
 import { Request } from "express";
 import { UserRequest } from "../middlewares/jwtMiddlewares";
 import PersonalizedAddress from "../models/personalizedAddress";
+import { where } from "sequelize";
 
 /*********************************************************************************************
             MÉTHODE POUR LISTER TOUTES LES ADRESSES PERSONNALISÉES DE L'UTILISATEUR
@@ -52,20 +53,24 @@ export const getAPersonalizedAddress = async (req: Request, res: Response) => {
 
 export const putAPersonalizedAddress = async (req: Request, res: Response) => {
   try {
-    let personalizedAddress = await PersonalizedAddress.findByPk(req.body.id);
+    const personalizedAddress = await PersonalizedAddress.findByPk(
+      req.params.personalizedAddress_id
+    );
     if (!personalizedAddress) {
       return res.status(404).json({ message: "Adresse non trouvée." });
     }
-
-    await personalizedAddress.update({
-      country: req.body.country
-        ? req.body.country
-        : personalizedAddress.country,
-      city: req.body.city ? req.body.city : personalizedAddress.city,
-      street: req.body.street ? req.body.street : personalizedAddress.street,
-      number: req.body.number ? req.body.number : personalizedAddress.number,
-      modifiedAt: new Date(Date.now()),
-    });
+    await PersonalizedAddress.update(
+      {
+        country: req.body.country
+          ? req.body.country
+          : personalizedAddress.country,
+        city: req.body.city ? req.body.city : personalizedAddress.city,
+        street: req.body.street ? req.body.street : personalizedAddress.street,
+        number: req.body.number ? req.body.number : personalizedAddress.number,
+        modifiedAt: new Date(Date.now()),
+      },
+      { where: { id: req.params.personalizedAddress_id } }
+    );
     res.status(200).send();
   } catch (error) {
     res.status(500).json({ message: "Erreur lors du traitement des données." });

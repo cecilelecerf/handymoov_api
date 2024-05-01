@@ -83,9 +83,14 @@ PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
 (async () => {
   try {
     console.log(await PersonalizedAddress.sync({ force: false }));
-    console.log("Modèle User synchronisé avec la base de données.");
+    console.log(
+      "Modèle PersonalizedAddress synchronisé avec la base de données."
+    );
   } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle User:", error);
+    console.error(
+      "Erreur lors de la synchronisation du modèle PersonalizedAddress:",
+      error
+    );
   }
 })();
 

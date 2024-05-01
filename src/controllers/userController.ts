@@ -4,6 +4,7 @@ import { Request } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserRequest } from "../middlewares/jwtMiddlewares";
+import PersonalizedAddress from "../models/personalizedAddress";
 
 /**********************************************************
             MÉTHODE POUR ENREGISTRER UN UTILISATEUR
@@ -40,8 +41,11 @@ export const registerAUser = async (req: Request, res: Response) => {
         message: "Vous ne pouvez pas créer un utilisateur avec le rôle admin.",
       });
     }
-    await User.create(req.body);
-
+    const user = await User.create(req.body);
+    ["Maison", "Travail"].map(
+      async (value) =>
+        await PersonalizedAddress.create({ label: value, user_id: user.id })
+    );
     res.status(204).send();
   } catch (error) {
     res.status(500).json({
@@ -151,6 +155,21 @@ export const deleteAUser = async (req: UserRequest, res: Response) => {
     }
 
     res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: "Erreur lors du traitement des données." });
+  }
+};
+
+/**********************************************************
+            MÉTHODE POUR LISTER TOUS LES USERS
+**********************************************************/
+
+export const getAllUser = async (req: UserRequest, res: Response) => {
+  try {
+    const users = await User.findAll();
+    if (!users)
+      return res.status(400).json({ message: "Aucun utilisateur trouvé" });
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: "Erreur lors du traitement des données." });
   }

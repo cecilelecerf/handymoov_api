@@ -4,11 +4,12 @@ const router = express.Router();
 import {
   deleteAUser,
   getAUser,
+  getAllUser,
   loginAUser,
   putAUser,
   registerAUser,
 } from "../controllers/userController";
-import { verifyToken } from "../middlewares/jwtMiddlewares";
+import { isAdmin, verifyToken } from "../middlewares/jwtMiddlewares";
 
 router.route("/register").post(registerAUser);
 
@@ -20,5 +21,7 @@ router
   .delete(deleteAUser)
   .put(putAUser)
   .get(getAUser);
+
+router.route("/all").get(getAllUser, isAdmin);
 
 export default router;

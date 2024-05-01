@@ -23,17 +23,16 @@ class PersonalizedAddress extends Model<
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
-  declare country: string;
-  declare city: string;
-  declare street: string;
-  declare number: string;
-  declare user_id: CreationOptional<ForeignKey<User["id"]>>;
-  // declare user_id: ForeignKey<User["id"]>;
+  declare country?: string;
+  declare city?: string;
+  declare street?: string;
+  declare number?: string;
+  declare user_id: ForeignKey<User["id"]>;
 }
 PersonalizedAddress.init(
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -51,21 +50,22 @@ PersonalizedAddress.init(
     },
     country: {
       type: DataTypes.CHAR(50),
-      allowNull: false,
+      allowNull: true,
     },
     city: {
       type: DataTypes.CHAR(50),
-      allowNull: false,
+      allowNull: true,
     },
     street: {
       type: DataTypes.CHAR(100),
-      allowNull: false,
+      allowNull: true,
     },
     number: {
       type: DataTypes.CHAR(10),
+      allowNull: true,
     },
     user_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
     },
   },
   {

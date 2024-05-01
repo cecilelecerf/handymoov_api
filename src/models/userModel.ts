@@ -1,59 +1,77 @@
-const { DataTypes } = require("sequelize");
-const bcrypt = require("bcrypt");
-const { db } = require("../app");
+import {
+  CreationOptional,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  NOW,
+} from "sequelize";
+import bcrypt from "bcrypt";
+import { db } from "../src/app";
 
-const User = db.define(
-  "User",
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare id: CreationOptional<number>;
+  declare createdAt: CreationOptional<Date>;
+  declare modifiedAt: CreationOptional<Date>;
+  declare mail: string;
+  declare firstname: string;
+  declare lastname: string;
+  declare password: string;
+  declare role: string;
+}
+User.init(
   {
-    mail: {
-      type: DataTypes.CHAR(100),
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
       primaryKey: true,
-      unique: true,
-      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,
-      default: DataTypes.NOW,
+      defaultValue: NOW,
     },
     modifiedAt: {
       type: DataTypes.DATE,
-      default: DataTypes.NOW,
+      defaultValue: NOW,
     },
-    firstname: {
+    mail: {
       type: DataTypes.CHAR(100),
-      allowNull: true,
+      unique: true,
+      allowNull: false,
+    },
+
+    firstname: {
+      type: DataTypes.CHAR(50),
+      allowNull: false,
     },
     lastname: {
-      type: DataTypes.CHAR(100),
-      allowNull: true,
+      type: DataTypes.CHAR(50),
+      allowNull: false,
     },
     password: {
+      // TODO mettre le char qui convient
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     role: {
       type: DataTypes.CHAR(5),
-      allowNull: true,
+      allowNull: false,
       defaultValue: "user",
       validate: {
         isIn: [["user", "admin"]],
       },
-    },
-    newsletter: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: false,
     },
   },
   {
     tableName: "users",
     timestamps: true,
     underscored: true,
+    sequelize: db,
   }
 );
 
 // Hash avant de sauvegarder en base de données
-User.addHook("beforeSave", async (user) => {
+User.addHook("beforeSave", async (user: User) => {
   try {
     // Valeur par défaut de l'algorithme de hashage : 10
     const algo = await bcrypt.genSalt(10);
@@ -74,4 +92,4 @@ User.addHook("beforeSave", async (user) => {
   }
 })();
 
-module.exports = User;
+export default User;

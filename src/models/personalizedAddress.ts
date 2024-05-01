@@ -5,11 +5,15 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
 import User from "./userModel";
 
 import { DataTypes } from "sequelize";
-import { db } from "../src/app";
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 
 class PersonalizedAddress extends Model<
   InferAttributes<PersonalizedAddress>,
@@ -19,16 +23,16 @@ class PersonalizedAddress extends Model<
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
-  declare country: string;
-  declare city: string;
-  declare street: string;
-  declare number: string;
+  declare country?: string;
+  declare city?: string;
+  declare street?: string;
+  declare number?: string;
   declare user_id: ForeignKey<User["id"]>;
 }
 PersonalizedAddress.init(
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -46,26 +50,26 @@ PersonalizedAddress.init(
     },
     country: {
       type: DataTypes.CHAR(50),
-      allowNull: false,
+      allowNull: true,
     },
     city: {
       type: DataTypes.CHAR(50),
-      allowNull: false,
+      allowNull: true,
     },
     street: {
       type: DataTypes.CHAR(100),
-      allowNull: false,
+      allowNull: true,
     },
     number: {
       type: DataTypes.CHAR(10),
+      allowNull: true,
     },
     user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      type: DataTypes.INTEGER.UNSIGNED,
     },
   },
   {
-    tableName: "personalizedAdress",
+    tableName: "personalizedAddress",
     timestamps: true,
     underscored: true,
     sequelize: db,
@@ -78,7 +82,7 @@ PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await PersonalizedAddress.sync({ force: false });
+    console.log(await PersonalizedAddress.sync({ force: false }));
     console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);

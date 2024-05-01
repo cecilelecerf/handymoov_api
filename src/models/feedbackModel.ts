@@ -6,12 +6,14 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
-import { db } from "../src/app";
 import User from "./userModel";
-import PersonalizedAddress from "./personalizedAdress";
 import ObjectFeedback from "./objectFeedbackModel";
-
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 class Feedback extends Model<
   InferAttributes<Feedback>,
   InferCreationAttributes<Feedback>

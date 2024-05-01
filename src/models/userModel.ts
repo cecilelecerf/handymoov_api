@@ -5,18 +5,19 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
 import bcrypt from "bcrypt";
-import { db } from "../src/app";
-import PersonalizedAddress from "./personalizedAdress";
-import Issue from "./issueModel";
-import Feedback from "./feedbackModel";
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
-  declare mail: string;
+  declare email: string;
   declare firstname: string;
   declare lastname: string;
   declare password: string;
@@ -37,7 +38,7 @@ User.init(
       type: DataTypes.DATE,
       defaultValue: NOW,
     },
-    mail: {
+    email: {
       type: DataTypes.CHAR(100),
       unique: true,
       allowNull: false,
@@ -72,9 +73,6 @@ User.init(
     sequelize: db,
   }
 );
-User.hasMany(PersonalizedAddress, { foreignKey: "user_id" });
-User.hasMany(Issue, { foreignKey: "user_id" });
-User.hasMany(Feedback, { foreignKey: "user_id" });
 
 // Hash avant de sauvegarder en base de données
 User.addHook("beforeSave", async (user: User) => {
@@ -91,7 +89,7 @@ User.addHook("beforeSave", async (user: User) => {
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await User.sync({ force: false });
+    console.log(await User.sync({ force: false }));
     console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);

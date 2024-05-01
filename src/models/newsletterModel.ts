@@ -5,8 +5,12 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
-import { db } from "../src/app";
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 
 class Newsletter extends Model<
   InferAttributes<Newsletter>,

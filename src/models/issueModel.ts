@@ -7,9 +7,13 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
-import { db } from "../src/app";
 import User from "./userModel";
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 
 class Issue extends Model<
   InferAttributes<Issue>,

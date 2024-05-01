@@ -4,6 +4,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NOW,
 } from "sequelize";
 import bcrypt from "bcrypt";
 import { db } from "../src/app";
@@ -25,8 +26,14 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    createdAt: DataTypes.DATE,
-    modifiedAt: DataTypes.DATE,
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: NOW,
+    },
+    modifiedAt: {
+      type: DataTypes.DATE,
+      defaultValue: NOW,
+    },
     mail: {
       type: DataTypes.CHAR(100),
       unique: true,

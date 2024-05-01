@@ -4,6 +4,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NOW,
 } from "sequelize";
 import User from "./userModel";
 
@@ -31,8 +32,14 @@ PersonalizedAdress.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    createdAt: DataTypes.DATE,
-    modifiedAt: DataTypes.DATE,
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: NOW,
+    },
+    modifiedAt: {
+      type: DataTypes.DATE,
+      defaultValue: NOW,
+    },
     label: {
       type: DataTypes.CHAR(25),
       allowNull: false,

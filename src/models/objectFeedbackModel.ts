@@ -4,6 +4,7 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  NOW,
 } from "sequelize";
 import { db } from "../src/app";
 
@@ -21,9 +22,16 @@ ObjectFeedback.init(
     label: {
       type: DataTypes.CHAR(50),
       primaryKey: true,
+      unique: true,
     },
-    createdAt: DataTypes.DATE,
-    modifiedAt: DataTypes.DATE,
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: NOW,
+    },
+    modifiedAt: {
+      type: DataTypes.DATE,
+      defaultValue: NOW,
+    },
   },
   {
     tableName: "objectFeedbacks",

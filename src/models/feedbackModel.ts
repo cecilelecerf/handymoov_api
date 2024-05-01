@@ -1,56 +1,43 @@
 import {
   CreationOptional,
+  DataTypes,
   ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
 } from "sequelize";
-import User from "./userModel";
-
-import { DataTypes } from "sequelize";
 import { db } from "../src/app";
+import ObjectFeedback from "./objectFeedbackModel.js";
+import User from "./userModel";
+import PersonalizedAdress from "./personalizedAdress";
 
-class PersonalizedAdress extends Model<
-  InferAttributes<PersonalizedAdress>,
-  InferCreationAttributes<PersonalizedAdress>
+class Feedback extends Model<
+  InferAttributes<Feedback>,
+  InferCreationAttributes<Feedback>
 > {
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
-  declare label: string;
-  declare country: string;
-  declare city: string;
-  declare street: string;
-  declare number: string;
+  declare object: string;
+  declare description: string;
   declare user_id: ForeignKey<User["id"]>;
 }
-PersonalizedAdress.init(
+Feedback.init(
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
     },
     createdAt: DataTypes.DATE,
     modifiedAt: DataTypes.DATE,
-    label: {
-      type: DataTypes.CHAR(25),
-      allowNull: false,
-    },
-    country: {
-      type: DataTypes.CHAR(50),
-      allowNull: false,
-    },
-    city: {
-      type: DataTypes.CHAR(50),
-      allowNull: false,
-    },
-    street: {
+    object: {
       type: DataTypes.CHAR(100),
       allowNull: false,
     },
-    number: {
-      type: DataTypes.CHAR(10),
+    description: {
+      type: DataTypes.CHAR(400),
+      allowNull: false,
     },
     user_id: {
       type: DataTypes.INTEGER,
@@ -58,24 +45,25 @@ PersonalizedAdress.init(
     },
   },
   {
-    tableName: "personalizedAdress",
+    tableName: "feedbacks",
     timestamps: true,
     underscored: true,
     sequelize: db,
   }
 );
 
+Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
 // Liaison avec les autres modèles
 PersonalizedAdress.belongsTo(User, { targetKey: "id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await PersonalizedAdress.sync({ force: false });
+    await Feedback.sync({ force: false });
     console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);
   }
 })();
 
-export default PersonalizedAdress;
+module.exports = Feedback;

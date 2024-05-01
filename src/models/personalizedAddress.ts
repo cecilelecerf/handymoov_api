@@ -5,11 +5,15 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
 import User from "./userModel";
 
 import { DataTypes } from "sequelize";
-import { db } from "../src/app";
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 
 class PersonalizedAddress extends Model<
   InferAttributes<PersonalizedAddress>,
@@ -23,7 +27,8 @@ class PersonalizedAddress extends Model<
   declare city: string;
   declare street: string;
   declare number: string;
-  declare user_id: ForeignKey<User["id"]>;
+  declare user_id: CreationOptional<ForeignKey<User["id"]>>;
+  // declare user_id: ForeignKey<User["id"]>;
 }
 PersonalizedAddress.init(
   {
@@ -61,11 +66,10 @@ PersonalizedAddress.init(
     },
     user_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
   },
   {
-    tableName: "personalizedAdress",
+    tableName: "personalizedAddress",
     timestamps: true,
     underscored: true,
     sequelize: db,
@@ -78,7 +82,7 @@ PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await PersonalizedAddress.sync({ force: false });
+    console.log(await PersonalizedAddress.sync({ force: false }));
     console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);

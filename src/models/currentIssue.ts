@@ -7,13 +7,14 @@ import {
   InferCreationAttributes,
   Model,
   NOW,
+  Sequelize,
 } from "sequelize";
-import { db } from "../src/app";
 import User from "./userModel";
 import Issue from "./issueModel";
-import Feedback from "./feedbackModel";
-import ObjectFeedback from "./objectFeedbackModel";
-
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 class CurrentIssue extends Model<
   InferAttributes<CurrentIssue>,
   InferCreationAttributes<CurrentIssue>
@@ -53,8 +54,8 @@ CurrentIssue.init(
   }
 );
 
-Feedback.belongsTo(User, { foreignKey: "user_id" });
-Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
+CurrentIssue.belongsTo(User, { foreignKey: "user_id" });
+CurrentIssue.belongsTo(Issue, { foreignKey: "issue_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {

@@ -2,17 +2,13 @@ import express from "express";
 import { Sequelize } from "sequelize";
 const app = express();
 const port = 3003;
+import testRoute from "./../routes/testRoute";
 
 // Configuration de la base de données
-export const db = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: "db",
-    dialect: "mysql",
-  }
-);
+const db = new Sequelize("handymoov", "admin", "admin", {
+  host: "db",
+  dialect: "mysql",
+});
 
 // Test de la connexion à la base de données
 db.authenticate()
@@ -22,13 +18,16 @@ db.authenticate()
   .catch((err) => {
     console.error("Impossible de se connecter à la base de données:", err);
   });
-
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 // Configuration des routes
+
+app.use("/", testRoute);
 
 // Démarrage du serveur
 app.listen(port, () => {
   console.log(`L'application écoute sur le port ${port}`);
 });
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello World!");
+// });

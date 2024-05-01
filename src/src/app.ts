@@ -1,10 +1,10 @@
-const express = require("express");
-const { Sequelize } = require("sequelize");
+import express from "express";
+import { Sequelize } from "sequelize";
 const app = express();
 const port = 3003;
 
 // Configuration de la base de données
-const db = new Sequelize(
+export const db = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
   process.env.DB_PASSWORD,
@@ -28,4 +28,7 @@ db.authenticate()
 // Démarrage du serveur
 app.listen(port, () => {
   console.log(`L'application écoute sur le port ${port}`);
+});
+app.get("/", (req, res) => {
+  res.send("Hello World!");
 });

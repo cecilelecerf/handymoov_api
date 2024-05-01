@@ -9,7 +9,7 @@ import {
 } from "sequelize";
 import { db } from "../src/app";
 import User from "./userModel";
-import PersonalizedAdress from "./personalizedAdress";
+import PersonalizedAddress from "./personalizedAdress";
 import ObjectFeedback from "./objectFeedbackModel";
 
 class Feedback extends Model<
@@ -69,9 +69,9 @@ Feedback.init(
   }
 );
 
-Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
 // Liaison avec les autres modèles
-PersonalizedAdress.belongsTo(User, { targetKey: "id" });
+Feedback.belongsTo(User, { foreignKey: "user_id" });
+Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {
@@ -83,4 +83,4 @@ PersonalizedAdress.belongsTo(User, { targetKey: "id" });
   }
 })();
 
-module.exports = Feedback;
+export default Feedback;

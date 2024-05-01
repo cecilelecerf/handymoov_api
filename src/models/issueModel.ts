@@ -58,6 +58,7 @@ Issue.init(
     sequelize: db,
   }
 );
+Issue.belongsTo(User, { foreignKey: "user_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {

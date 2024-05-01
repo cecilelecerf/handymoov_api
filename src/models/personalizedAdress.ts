@@ -11,9 +11,9 @@ import User from "./userModel";
 import { DataTypes } from "sequelize";
 import { db } from "../src/app";
 
-class PersonalizedAdress extends Model<
-  InferAttributes<PersonalizedAdress>,
-  InferCreationAttributes<PersonalizedAdress>
+class PersonalizedAddress extends Model<
+  InferAttributes<PersonalizedAddress>,
+  InferCreationAttributes<PersonalizedAddress>
 > {
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
@@ -25,7 +25,7 @@ class PersonalizedAdress extends Model<
   declare number: string;
   declare user_id: ForeignKey<User["id"]>;
 }
-PersonalizedAdress.init(
+PersonalizedAddress.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -73,16 +73,16 @@ PersonalizedAdress.init(
 );
 
 // Liaison avec les autres modèles
-PersonalizedAdress.belongsTo(User, { targetKey: "id" });
+PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await PersonalizedAdress.sync({ force: false });
+    await PersonalizedAddress.sync({ force: false });
     console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);
   }
 })();
 
-export default PersonalizedAdress;
+export default PersonalizedAddress;

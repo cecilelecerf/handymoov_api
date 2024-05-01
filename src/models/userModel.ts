@@ -8,6 +8,9 @@ import {
 } from "sequelize";
 import bcrypt from "bcrypt";
 import { db } from "../src/app";
+import PersonalizedAddress from "./personalizedAdress";
+import Issue from "./issueModel";
+import Feedback from "./feedbackModel";
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
@@ -69,6 +72,9 @@ User.init(
     sequelize: db,
   }
 );
+User.hasMany(PersonalizedAddress, { foreignKey: "user_id" });
+User.hasMany(Issue, { foreignKey: "user_id" });
+User.hasMany(Feedback, { foreignKey: "user_id" });
 
 // Hash avant de sauvegarder en base de données
 User.addHook("beforeSave", async (user: User) => {

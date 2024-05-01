@@ -11,6 +11,8 @@ import {
 import { db } from "../src/app";
 import User from "./userModel";
 import Issue from "./issueModel";
+import Feedback from "./feedbackModel";
+import ObjectFeedback from "./objectFeedbackModel";
 
 class CurrentIssue extends Model<
   InferAttributes<CurrentIssue>,
@@ -50,6 +52,9 @@ CurrentIssue.init(
     sequelize: db,
   }
 );
+
+Feedback.belongsTo(User, { foreignKey: "user_id" });
+Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {

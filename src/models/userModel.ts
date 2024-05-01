@@ -4,7 +4,6 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
-  Sequelize,
 } from "sequelize";
 import bcrypt from "bcrypt";
 import { db } from "../src/app";
@@ -86,4 +85,4 @@ User.addHook("beforeSave", async (user: User) => {
   }
 })();
 
-module.exports = User;
+export default User;

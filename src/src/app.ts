@@ -3,6 +3,7 @@ import { Sequelize } from "sequelize";
 const app = express();
 const port = 3003;
 import userRoute from "./../routes/userRoute";
+import personalizedAddressRoute from "./../routes/personalizedAddress";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger/swagger_config";
 // Configuration de la base de données
@@ -28,7 +29,7 @@ app.use(express.json());
 
 // Configuration des routes
 app.use("/users", userRoute);
-
+app.use("/personalizedAddress", personalizedAddressRoute);
 // Démarrage du serveur
 app.listen(port, () => {
   console.log(`L'application écoute sur le port ${port}`);

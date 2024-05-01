@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: API de gestion des utilisateurs
+  description: API pour la gestion des utilisateurs de l'application HandyMoov
+  version: 1.0.0
+tags:
+  - name: User
+    description: API pour la gestion des utilisateurs
+
+paths:
+  /users/register:
+    post:
+      summary: Enregistrer un nouvel utilisateur
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstname:
+                  type: string
+                  description: Prénom de l'utilisateur
+                lastname:
+                  type: string
+                  description: Nom de l'utilisateur
+                email:
+                  type: string
+                  format: email
+                  description: Adresse email de l'utilisateur
+                password:
+                  type: string
+                  format: password
+                  description: Mot de passe de l'utilisateur
+              required:
+                - firstname
+                - lastname
+                - email
+                - password
+      responses:
+        '204':
+          description: Utilisateur enregistré avec succès
+        '400':
+          description: Requête invalide, des champs obligatoires sont manquants
+        '409':
+          description: Cet email existe déjà
+        '500':
+          description: Erreur lors du traitement des données côté serveur
+
+  /users/login:
+    post:
+      summary: Connecter un utilisateur existant
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Utilisateur connecté avec succès
+        '400':
+          description: Requête invalide
+        '401':
+          description: Email ou mot de passe incorrect
+
+  /users:
+    get:
+      summary: Récupérer les informations de l'utilisateur connecté
+      tags: [User]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Informations de l'utilisateur récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Mettre à jour les informations de l'utilisateur connecté
+      tags: [User]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Informations de l'utilisateur mises à jour avec succès
+        '400':
+          description: Requête invalide
+    delete:
+      summary: Supprimer le compte de l'utilisateur connecté
+      tags: [User]
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Compte utilisateur supprimé avec succès
+        '401':
+          description: Non autorisé à supprimer le compte
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - firstname
+        - lastname
+        - email
+        - password
+        - role
+        - createdAt
+        - modifiedAt
+      properties:
+        id:
+          type: integer
+          description: ID de l'utilisateur
+        firstname:
+          type: string
+          description: Prénom de l'utilisateur
+        lastname:
+          type: string
+          description: Nom de l'utilisateur
+        email:
+          type: string
+          description: Adresse email de l'utilisateur
+        password:
+          type: string
+          description: Mot de passe de l'utilisateur
+        role:
+          type: string
+          description: Rôle de l'utilisateur (user, admin)
+        createdAt:
+          type: string
+          format: date-time
+          description: Date et heure de création de l'utilisateur
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date et heure de dernière mise à jour de l'utilisateur

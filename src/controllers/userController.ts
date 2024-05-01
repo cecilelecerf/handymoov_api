@@ -33,7 +33,7 @@ export const registerAUser = async (req: Request, res: Response) => {
       where: { email: req.body.email },
     });
     if (existingEmail) {
-      return res.status(400).json({ message: "Cet email existe déjà." });
+      return res.status(409).json({ message: "Cet email existe déjà." });
     }
     if (req.body.role === "admin") {
       return res.status(400).json({
@@ -42,7 +42,7 @@ export const registerAUser = async (req: Request, res: Response) => {
     }
     await User.create(req.body);
 
-    res.status(201);
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({
       message: `Erreur lors du traitement des données.`,
@@ -69,9 +69,12 @@ export const loginAUser = async (req: Request, res: Response) => {
 
     if (validPassword) {
       const userData = {
-        id_user: user.id,
+        id: user.id,
         email: user.email,
         role: user.role,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        password: user.password,
       };
 
       const token = jwt.sign(userData, process.env.JWT_KEY, {
@@ -112,7 +115,7 @@ export const getAUser = async (req: UserRequest, res: Response) => {
 export const putAUser = async (req: UserRequest, res: Response) => {
   try {
     let user = await User.findByPk(req.user.id);
-
+    console.log(req.user);
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé." });
     }
@@ -124,9 +127,10 @@ export const putAUser = async (req: UserRequest, res: Response) => {
       firstname: req.body.firstname ? req.body.firstname : req.user.firstname,
       password: req.body.password ? req.body.password : req.user.password,
       email: req.body.email ? req.body.email : req.user.email,
+      modifiedAt: new Date(Date.now()),
     });
 
-    res.status(200).json({ message: "Utilisateur mis à jour avec succès." });
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: "Erreur lors du traitement des données." });
   }
@@ -146,7 +150,7 @@ export const deleteAUser = async (req: UserRequest, res: Response) => {
       return res.status(404).json({ message: "Utilisateur non trouvé." });
     }
 
-    res.status(204);
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: "Erreur lors du traitement des données." });
   }

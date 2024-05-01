@@ -7,9 +7,9 @@ import {
   Model,
 } from "sequelize";
 import { db } from "../src/app";
-import ObjectFeedback from "./objectFeedbackModel.js";
 import User from "./userModel";
 import PersonalizedAdress from "./personalizedAdress";
+import ObjectFeedback from "./objectFeedbackModel";
 
 class Feedback extends Model<
   InferAttributes<Feedback>,
@@ -21,6 +21,8 @@ class Feedback extends Model<
   declare object: string;
   declare description: string;
   declare user_id: ForeignKey<User["id"]>;
+  declare read: boolean;
+  declare hightPriority: boolean;
 }
 Feedback.init(
   {
@@ -41,6 +43,14 @@ Feedback.init(
     },
     user_id: {
       type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    read: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
+    hightPriority: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
     },
   },

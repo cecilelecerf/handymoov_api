@@ -4,8 +4,10 @@ const app = express();
 const port = 3003;
 import userRoute from "./../routes/userRoute";
 import personalizedAddressRoute from "./../routes/personalizedAddress";
+import feedbackRoute from "../routes/feedbackRoute";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger/swagger_config";
+
 // Configuration de la base de données
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
@@ -20,8 +22,8 @@ db.authenticate()
   .catch((err) => {
     console.error("Impossible de se connecter à la base de données:", err);
   });
-// Configuration de Swagger
 
+// Configuration de Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.urlencoded({ extended: true }));
@@ -30,6 +32,8 @@ app.use(express.json());
 // Configuration des routes
 app.use("/users", userRoute);
 app.use("/personalizedAddress", personalizedAddressRoute);
+app.use("/feedbacks", feedbackRoute);
+
 // Démarrage du serveur
 app.listen(port, () => {
   console.log(`L'application écoute sur le port ${port}`);

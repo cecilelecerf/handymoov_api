@@ -19,7 +19,7 @@ class Newsletter extends Model<
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
-  declare mail: string;
+  declare email: string;
 }
 Newsletter.init(
   {
@@ -36,7 +36,7 @@ Newsletter.init(
       type: DataTypes.DATE,
       defaultValue: NOW,
     },
-    mail: {
+    email: {
       type: DataTypes.CHAR(100),
       unique: true,
       allowNull: false,

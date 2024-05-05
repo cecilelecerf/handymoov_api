@@ -11,8 +11,10 @@ import {
 } from "../controllers/feedbackController";
 import {
   deleteAObjectFeedback,
+  getAObjectFeedback,
   getAllObjectFeedbacks,
   postAObjectFeedback,
+  putAObjectFeedback,
 } from "../controllers/objectFeedback";
 
 router.route("/").all(verifyToken).get(getAllFeedbacks).post(postAFeedback);
@@ -23,10 +25,16 @@ router
   .patch(putAFeedback)
   .delete(deleteAFeedback);
 router
-  .route("/objects")
+  .route("/object")
   .all(isAdmin)
   .get(getAllObjectFeedbacks)
-  .post(postAObjectFeedback)
+  .post(postAObjectFeedback);
+
+router
+  .route("/object/:label")
+  .all(isAdmin)
+  .get(getAObjectFeedback)
+  .put(putAObjectFeedback)
   .delete(deleteAObjectFeedback);
 
 export default router;

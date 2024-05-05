@@ -65,9 +65,7 @@ export const getAObjectFeedback = async (req: Request, res: Response) => {
 
 export const putAObjectFeedback = async (req: Request, res: Response) => {
   try {
-    const objectfeedback = await ObjectFeedback.findByPk(
-      req.params.feedback_id
-    );
+    const objectfeedback = await ObjectFeedback.findByPk(req.params.label);
     if (!objectfeedback) {
       return res.status(404).json({ message: "ObjectFeedback non trouvée." });
     }

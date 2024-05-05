@@ -1,0 +1,235 @@
+openapi: 3.0.0
+info:
+  title: Handymoov Feedback API
+  description: API pour la gestion des feedbacks
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+components:
+  schemas:
+    Feedback:
+      type: object
+      required:
+        - id
+        - object
+        - description
+        - user_id
+        - read
+        - createdAt
+        - modifiedAt
+      properties:
+        id:
+          type: integer
+          description: Identifiant du feedback
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création du feedback
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Date de modification du feedback
+        object:
+          type: string
+          description: Objet du feedback
+        description:
+          type: string
+          description: Description du feedback
+        user_id:
+          type: integer
+          description: ID de l'utilisateur associé
+        read:
+          type: boolean
+          description: Statut de lecture du feedback
+        hightPriority:
+          type: boolean
+          description: Priorité élevée du feedback
+    ObjectFeedback:
+      type: object
+      required:
+        - label
+        - createdAt
+        - modifiedAt
+      properties:
+        label:
+          type: string
+          description: Libellé de l'objet de feedback
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de l'objet de feedback
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Date de modification de l'objet de feedback
+paths:
+  /feedbacks:
+    get:
+      summary: Récupérer tous les feedbacks
+      tags: 
+        - Feedback
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+    post:
+      summary: Créer un nouveau feedback
+      tags: 
+        - Feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Object et description obligatoires
+  /feedbacks/{feedback_id}:
+    get:
+      summary: Récupérer un feedback par ID
+      tags: 
+        - Feedback
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '404':
+          description: Feedback non trouvé
+    patch:
+      summary: Mettre à jour un feedback par ID
+      tags: 
+        - Feedback
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Feedback non trouvé
+    delete:
+      summary: Supprimer un feedback par ID
+      tags: 
+        - Feedback
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Feedback non trouvé
+  /feedbacks/object:
+    get:
+      summary: Récupérer tous les objets de feedback
+      tags: 
+        - Feedback
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObjectFeedback'
+    post:
+      summary: Créer un nouvel objet de feedback
+      tags: 
+        - Feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectFeedback'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Label obligatoire
+  /feedbacks/object/{label}:
+    get:
+      summary: Récupérer un objet de feedback par label
+      tags: 
+        - Feedback
+      parameters:
+        - in: path
+          name: label
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectFeedback'
+        '404':
+          description: ObjectFeedback non trouvé
+    patch:
+      summary: Mettre à jour un objet de feedback par label
+      tags: 
+        - Feedback
+      parameters:
+        - in: path
+          name: label
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObjectFeedback'
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: ObjectFeedback non trouvé
+    delete:
+      summary: Supprimer un objet de feedback par label
+      tags: 
+        - Feedback
+      parameters:
+        - in: path
+          name: label
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: ObjectFeedback non trouvé

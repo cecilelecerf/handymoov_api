@@ -3,8 +3,10 @@ import { Sequelize } from "sequelize";
 const app = express();
 const port = 3003;
 import userRoute from "./../routes/userRoute";
-import personalizedAddressRoute from "./../routes/personalizedAddress";
+import personalizedAddressRoute from "../routes/personalizedAddressRoute";
 import feedbackRoute from "../routes/feedbackRoute";
+import issueRoute from "../routes/issueRoute";
+import newsletterRoute from "../routes/newsletterRoute";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger/swagger_config";
 
@@ -33,6 +35,7 @@ app.use(express.json());
 app.use("/users", userRoute);
 app.use("/personalizedAddress", personalizedAddressRoute);
 app.use("/feedbacks", feedbackRoute);
+app.use("/newsletters", newsletterRoute);
 
 // Démarrage du serveur
 app.listen(port, () => {

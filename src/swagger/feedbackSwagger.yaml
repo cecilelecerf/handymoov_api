@@ -1,0 +1,93 @@
+openapi: 3.0.0
+info:
+  title: Handymoov Feedback API
+  description: API pour la gestion des feedbacks
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /feedbacks:
+    get:
+      summary: Récupérer tous les feedbacks
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Créer un nouveau feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                object:
+                  type: string
+                  description: Objet du feedback
+                description:
+                  type: string
+                  description: Description du feedback
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Object obligatoire ou description obligatoire
+  /feedbacks/{feedback_id}:
+    get:
+      summary: Récupérer un feedback par ID
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Feedback non trouvé
+    patch:
+      summary: Mettre à jour un feedback par ID
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                object:
+                  type: string
+                  description: Nouvel objet du feedback
+                description:
+                  type: string
+                  description: Nouvelle description du feedback
+                read:
+                  type: boolean
+                  description: Statut de lecture du feedback
+                hightPriority:
+                  type: boolean
+                  description: Priorité élevée du feedback
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Feedback non trouvé
+    delete:
+      summary: Supprimer un feedback par ID
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Feedback non trouvé

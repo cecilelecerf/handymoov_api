@@ -1,0 +1,103 @@
+openapi: 3.0.0
+info:
+  title: Handymoov API
+  description: API pour la gestion des issues et des current issues
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /issues:
+    get:
+      summary: Récupérer tous les issues
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Créer un nouveau issue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: Libellé de l'issue
+                gpsCoordinate:
+                  type: string
+                  description: Coordonnées GPS de l'issue
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Objet obligatoire ou description obligatoire
+  /issues/{issue_id}:
+    get:
+      summary: Récupérer un issue par ID
+      parameters:
+        - in: path
+          name: issue_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Issue non trouvée
+    put:
+      summary: Mettre à jour un issue par ID
+      parameters:
+        - in: path
+          name: issue_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: Nouveau libellé de l'issue
+                gpsCoordinate:
+                  type: string
+                  description: Nouvelles coordonnées GPS de l'issue
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Issue non trouvée
+    delete:
+      summary: Supprimer un issue par ID
+      parameters:
+        - in: path
+          name: issue_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Issue non trouvée
+  /issues/user:
+    get:
+      summary: Récupérer tous les issues d'un utilisateur
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Aucune issue trouvée
+  /issues/actif:
+    get:
+      summary: Récupérer tous les issues actifs
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Aucune issue trouvée

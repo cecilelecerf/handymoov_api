@@ -23,7 +23,7 @@ router
   .patch(putAFeedback)
   .delete(deleteAFeedback);
 router
-  .route("/objects")
+  .route("/object")
   .all(isAdmin)
   .get(getAllObjectFeedbacks)
   .post(postAObjectFeedback)

@@ -6,21 +6,25 @@
   "scripts": {
     "start": "tsc && nodemon dist/src/app.js",
     "lint": "eslint . --ext .ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.1",
+    "@types/jest": "^29.5.12",
     "eslint": "^9.1.1",
+    "jest": "^29.7.0",
     "nodemon": "^3.0.1",
+    "ts-jest": "^29.1.2",
     "typescript": "^5.4.5"
   },
   "dependencies": {
     "@types/dotenv": "^8.2.0",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.7",
+    "@types/supertest": "^6.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "bcrypt": "^5.1.1",
@@ -28,6 +32,7 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^9.0.2",
     "sequelize": "^6.37.1",
+    "supertest": "^7.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
   }

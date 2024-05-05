@@ -53,7 +53,7 @@ export const getAllIssuesUser = async (req: UserRequest, res: Response) => {
   try {
     const issues = await Issue.findAll({ where: { user_id: req.user.id } });
     if (!issues)
-      return res.status(400).json({ message: "Aucune issues trouvés" });
+      return res.status(404).json({ message: "Aucune issues trouvés" });
 
     res.status(200).json(issues);
   } catch (error) {
@@ -71,7 +71,7 @@ export const getAllIssuesActif = async (req: Request, res: Response) => {
   try {
     const issues = await Issue.findAll({ where: { actif: true } });
     if (!issues)
-      return res.status(400).json({ message: "Aucune issues trouvés" });
+      return res.status(400).json({ message: "Aucune issues trouvées" });
 
     res.status(200).json(issues);
   } catch (error) {

@@ -1,40 +1,112 @@
 openapi: 3.0.0
 info:
-  title: Handymoov API
-  description: API pour la gestion des issues et des current issues
+  title: Handymoov Feedback API
+  description: API pour la gestion des feedbacks
   version: 1.0.0
 servers:
   - url: http://localhost:3000
+components:
+  schemas:
+    Issue:
+      type: object
+      required:
+        - id
+        - label
+        - description
+        - gpsCoordinate
+        - actif
+        - user_id
+        - createdAt
+        - modifiedAt
+      properties:
+        id:
+          type: integer
+          description: Identifiant de l'issue
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de l'issue
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Date de modification de l'issue
+        label:
+          type: string
+          description: Libellé de l'issue
+        gpsCoordinate:
+          type: string
+          description: Coordonnées GPS de l'issue
+        actif:
+          type: boolean
+          description: Statut d'activité de l'issue
+        user_id:
+          type: integer
+          description: ID de l'utilisateur associé à l'issue
+    CurrentIssue:
+      type: object      
+      required:
+        - id
+        - actif
+        - issue_id
+        - user_id
+        - createdAt
+        - modifiedAt
+      properties:
+        id:
+          type: integer
+          description: Identifiant de la currentIssue
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de la currentIssue
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Date de modification de la currentIssue
+        user_id:
+          type: integer
+          description: ID de l'utilisateur associé à la currentIssue
+        issue_id:
+          type: integer
+          description: ID de l'issue associé à la currentIssue
+        actif:
+          type: boolean
+          description: Statut d'activité de la currentIssue
 paths:
   /issues:
     get:
       summary: Récupérer tous les issues
+      tags: 
+        - Issue
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
     post:
-      summary: Créer un nouveau issue
+      summary: Créer un nouvel issue
+      tags: 
+        - Issue
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                label:
-                  type: string
-                  description: Libellé de l'issue
-                gpsCoordinate:
-                  type: string
-                  description: Coordonnées GPS de l'issue
+              $ref: '#/components/schemas/Issue'
       responses:
         '200':
           description: OK
         '404':
-          description: Objet obligatoire ou description obligatoire
+          description: Label et gpsCoordinate obligatoires
   /issues/{issue_id}:
     get:
       summary: Récupérer un issue par ID
+      tags: 
+        - Issue
       parameters:
         - in: path
           name: issue_id
@@ -44,36 +116,15 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
         '404':
-          description: Issue non trouvée
-    put:
-      summary: Mettre à jour un issue par ID
-      parameters:
-        - in: path
-          name: issue_id
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                label:
-                  type: string
-                  description: Nouveau libellé de l'issue
-                gpsCoordinate:
-                  type: string
-                  description: Nouvelles coordonnées GPS de l'issue
-      responses:
-        '200':
-          description: OK
-        '404':
-          description: Issue non trouvée
-    delete:
+          description: Issue non trouvé
       summary: Supprimer un issue par ID
+      tags: 
+        - Issue
       parameters:
         - in: path
           name: issue_id
@@ -84,20 +135,58 @@ paths:
         '204':
           description: No Content
         '404':
-          description: Issue non trouvée
-  /issues/user:
-    get:
-      summary: Récupérer tous les issues d'un utilisateur
+          description: Issue non trouvé
+  /currentissues:
+    post:
+      summary: Créer un nouveau currentIssue
+      tags: 
+        - CurrentIssue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrentIssue'
       responses:
         '200':
           description: OK
         '400':
-          description: Aucune issue trouvée
+          description: Actif obligatoire
+        '500':
+          description: Erruer lors du traitement des données
+  /issues/user:
+    get:
+      summary: Récupérer tous les issues d'un USER
+      tags: 
+        - Issue
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '404':
+          description: Issue non trouvé
+        '500':
+          description: Erreur lors du traitement des données.
   /issues/actif:
     get:
       summary: Récupérer tous les issues actifs
+      tags: 
+        - Issue
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issue'
         '400':
-          description: Aucune issue trouvée
+          description: Aucune issues trouvées
+        '500':
+          description: Erreur lors du traitement des données.er

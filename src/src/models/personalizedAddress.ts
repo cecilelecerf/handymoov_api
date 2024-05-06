@@ -1,7 +1,5 @@
 import {
   CreationOptional,
-  DATE,
-  DataTypes,
   ForeignKey,
   InferAttributes,
   InferCreationAttributes,
@@ -10,24 +8,28 @@ import {
   Sequelize,
 } from "sequelize";
 import User from "./userModel";
+
+import { DataTypes } from "sequelize";
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
   dialect: "mysql",
 });
 
-class Issue extends Model<
-  InferAttributes<Issue>,
-  InferCreationAttributes<Issue>
+class PersonalizedAddress extends Model<
+  InferAttributes<PersonalizedAddress>,
+  InferCreationAttributes<PersonalizedAddress>
 > {
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
-  declare gpsCoordinate: string;
-  declare actif: boolean;
+  declare country?: string;
+  declare city?: string;
+  declare street?: string;
+  declare number?: string;
   declare user_id: ForeignKey<User["id"]>;
 }
-Issue.init(
+PersonalizedAddress.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -43,35 +45,50 @@ Issue.init(
       defaultValue: NOW,
     },
     label: {
-      type: DataTypes.CHAR(100),
-      unique: true,
+      type: DataTypes.CHAR(25),
       allowNull: false,
     },
-    gpsCoordinate: {
-      type: DataTypes.CHAR(100),
+    country: {
+      type: DataTypes.CHAR(50),
+      allowNull: true,
     },
-    actif: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
+    city: {
+      type: DataTypes.CHAR(50),
+      allowNull: true,
+    },
+    street: {
+      type: DataTypes.CHAR(100),
+      allowNull: true,
+    },
+    number: {
+      type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    user_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
     },
   },
   {
-    tableName: "issues",
+    tableName: "personalizedAddress",
     timestamps: true,
     underscored: true,
     sequelize: db,
   }
 );
-Issue.belongsTo(User, { foreignKey: "user_id" });
+
+// Liaison avec les autres modèles
+PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await Issue.sync({ force: false });
-    console.log("Modèle Issue synchronisé avec la base de données.");
+    await PersonalizedAddress.sync({ force: false });
   } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle Issue:", error);
+    console.error(
+      "Erreur lors de la synchronisation du modèle PersonalizedAddress:",
+      error
+    );
   }
 })();
 
-export default Issue;
+export default PersonalizedAddress;

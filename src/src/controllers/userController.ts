@@ -30,18 +30,30 @@ export const registerAUser = async (req: Request, res: Response) => {
       return res.status(400).json({
         message: `Le mot de passe est obligatoire`,
       });
+    if (req.body.password !== req.body.passwordConfirmation)
+      return res.status(409).json({
+        message: "Les mots de passe ne sont pas identiques",
+      });
     const existingEmail = await User.findOne({
       where: { email: req.body.email },
     });
+    console.log(existingEmail);
     if (existingEmail) {
       return res.status(409).json({ message: "Cet email existe déjà." });
     }
+
+    // const pass = await bcrypt.hash(req.body.password, 10);
     if (req.body.role === "admin") {
       return res.status(400).json({
         message: "Vous ne pouvez pas créer un utilisateur avec le rôle admin.",
       });
     }
-    const user = await User.create(req.body);
+    const user = await User.create({
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      password: req.body.password,
+      email: req.body.email,
+    });
     ["Maison", "Travail"].map(
       async (value) =>
         await PersonalizedAddress.create({ label: value, user_id: user.id })
@@ -119,7 +131,6 @@ export const getAUser = async (req: UserRequest, res: Response) => {
 export const putAUser = async (req: UserRequest, res: Response) => {
   try {
     let user = await User.findByPk(req.user.id);
-    console.log(req.user);
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé." });
     }

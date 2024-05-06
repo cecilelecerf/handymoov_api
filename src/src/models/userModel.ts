@@ -7,7 +7,9 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
+
 import bcrypt from "bcrypt";
+
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
   dialect: "mysql",
@@ -89,8 +91,7 @@ User.addHook("beforeSave", async (user: User) => {
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    console.log(await User.sync({ force: false }));
-    console.log("Modèle User synchronisé avec la base de données.");
+    await User.sync({ force: false });
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);
   }

@@ -61,7 +61,6 @@ CurrentIssue.belongsTo(Issue, { foreignKey: "issue_id" });
 (async () => {
   try {
     await CurrentIssue.sync({ force: false });
-    console.log("Modèle CurrentIssue synchronisé avec la base de données.");
   } catch (error) {
     console.error(
       "Erreur lors de la synchronisation du modèle CurrentIssue:",

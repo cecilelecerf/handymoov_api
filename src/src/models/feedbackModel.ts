@@ -47,11 +47,11 @@ Feedback.init(
       allowNull: false,
     },
     description: {
-      type: DataTypes.CHAR(400),
+      type: DataTypes.CHAR(200),
       allowNull: false,
     },
     user_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
     },
     read: {
@@ -79,7 +79,6 @@ Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
 (async () => {
   try {
     await Feedback.sync({ force: false });
-    console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);
   }

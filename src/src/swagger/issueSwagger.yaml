@@ -104,7 +104,7 @@ paths:
           description: Label et gpsCoordinate obligatoires
   /issues/{issue_id}:
     get:
-      summary: Récupérer un issue par ID
+      summary: Récupérer un issue par son ID
       tags: 
         - Issue
       parameters:
@@ -122,6 +122,7 @@ paths:
                 $ref: '#/components/schemas/Issue'
         '404':
           description: Issue non trouvé
+    delete:
       summary: Supprimer un issue par ID
       tags: 
         - Issue

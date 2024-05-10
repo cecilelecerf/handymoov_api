@@ -7,7 +7,6 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
-import User from "./userModel";
 
 import { DataTypes } from "sequelize";
 const db = new Sequelize("handymoov", "admin", "admin", {
@@ -27,7 +26,7 @@ class PersonalizedAddress extends Model<
   declare city?: string;
   declare street?: string;
   declare number?: string;
-  declare user_id: ForeignKey<User["id"]>;
+  declare user_id: number;
 }
 PersonalizedAddress.init(
   {
@@ -75,9 +74,6 @@ PersonalizedAddress.init(
     sequelize: db,
   }
 );
-
-// Liaison avec les autres modèles
-PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {

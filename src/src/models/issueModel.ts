@@ -9,7 +9,6 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
-import User from "./userModel";
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
   dialect: "mysql",
@@ -25,7 +24,7 @@ class Issue extends Model<
   declare label: string;
   declare gpsCoordinate: string;
   declare actif: boolean;
-  declare user_id: ForeignKey<User["id"]>;
+  declare user_id: number;
 }
 Issue.init(
   {
@@ -65,7 +64,6 @@ Issue.init(
     sequelize: db,
   }
 );
-Issue.belongsTo(User, { foreignKey: "user_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {

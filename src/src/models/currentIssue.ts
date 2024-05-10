@@ -9,7 +9,6 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
-import User from "./userModel";
 import Issue from "./issueModel";
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
@@ -22,8 +21,8 @@ class CurrentIssue extends Model<
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
-  declare user_id: ForeignKey<User["id"]>;
-  declare issue_id: ForeignKey<Issue["id"]>;
+  declare user_id: number;
+  declare issue_id: number;
   declare actif: boolean;
 }
 CurrentIssue.init(
@@ -41,6 +40,14 @@ CurrentIssue.init(
       type: DataTypes.DATE,
       defaultValue: NOW,
     },
+    user_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
+    issue_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
     actif: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
@@ -54,7 +61,6 @@ CurrentIssue.init(
   }
 );
 
-CurrentIssue.belongsTo(User, { foreignKey: "user_id" });
 CurrentIssue.belongsTo(Issue, { foreignKey: "issue_id" });
 
 // Synchronisation du modèle avec la base de données

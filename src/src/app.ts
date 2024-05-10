@@ -1,8 +1,7 @@
-import config from "config";
 import connect from "./utils/connect";
 import createServer from "./utils/server";
 
-const port = config.get<number>("port");
+const port = 3003;
 
 const app = createServer();
 

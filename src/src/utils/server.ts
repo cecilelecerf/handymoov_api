@@ -1,5 +1,4 @@
-import { Sequelize } from "sequelize";
-import express, { Application } from "express";
+import express from "express";
 import userRoute from "../routes/userRoute";
 import personalizedAddressRoute from "../routes/personalizedAddressRoute";
 import feedbackRoute from "../routes/feedbackRoute";

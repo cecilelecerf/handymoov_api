@@ -29,12 +29,30 @@ const registerUser: RegisterUserProps = {
   passwordConfirmation: user["password"],
 };
 
+interface LoginUserProps {
+  email: RegisterUserProps["email"];
+  password: RegisterUserProps["password"];
+}
+const loginUser: LoginUserProps = {
+  email: registerUser.email,
+  password: registerUser.password,
+};
+const registerAdminUser: RegisterUserProps = {
+  email: "admin@handymoov.com",
+  firstname: user["firstname"],
+  lastname: user["lastname"],
+  password: user["password"],
+  passwordConfirmation: user["password"],
+};
 const app = createServer();
 
-describe("User Controller", () => {
+describe("User", () => {
   afterEach(async () => {
     await PersonalizedAddress.destroy({ where: {} });
     await User.destroy({ where: { email: registerUser.email } });
+    await User.destroy({
+      where: { email: registerAdminUser.email || "invalidemail" },
+    });
   });
 
   describe("POST /register", () => {
@@ -167,15 +185,6 @@ describe("User Controller", () => {
     });
   });
 
-  interface LoginUserProps {
-    email: RegisterUserProps["email"];
-    password: RegisterUserProps["password"];
-  }
-  const loginUser: LoginUserProps = {
-    email: registerUser.email,
-    password: registerUser.password,
-  };
-
   describe("POST /login", () => {
     it("should return a token and 200 if email and password are correct", async () => {
       await supertest(app).post("/users/register").send(registerUser);
@@ -210,7 +219,7 @@ describe("User Controller", () => {
     });
   });
   describe("GET /", () => {
-    it("should return 200 when registering a new user", async () => {
+    it("should return 200 when get a user", async () => {
       // inscription
       await supertest(app).post("/users/register").send(registerUser);
       // connexion
@@ -313,7 +322,6 @@ describe("User Controller", () => {
       const loginRes = await supertest(app)
         .post("/users/login")
         .send(loginUser);
-      console.log(loginRes.body.token);
       const { statusCode } = await supertest(app)
         .delete("/users/")
         .set("authorization", `${loginRes.body.token}`);
@@ -331,15 +339,7 @@ describe("User Controller", () => {
     });
   });
   describe("GET /users", () => {
-    it("should return all users when authenticated user is admin", async () => {
-      const registerAdminUser: RegisterUserProps = {
-        email: "admin@handymoov.com",
-        firstname: user["firstname"],
-        lastname: user["lastname"],
-        password: user["password"],
-        passwordConfirmation: user["password"],
-      };
-
+    it("should return 200 and list of all users", async () => {
       await supertest(app).post("/users/register").send(registerUser);
       await supertest(app).post("/users/register").send(registerAdminUser);
       const adminLoginRes = await supertest(app).post("/users/login").send({

@@ -46,7 +46,7 @@ Feedback.init(
       allowNull: false,
     },
     description: {
-      type: DataTypes.CHAR(200),
+      type: DataTypes.CHAR(300),
       allowNull: false,
     },
     user_id: {

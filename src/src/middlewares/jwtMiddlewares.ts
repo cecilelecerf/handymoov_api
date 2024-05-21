@@ -13,7 +13,6 @@ export interface UserRequest extends Request {
 const verifyJWT = (token: string) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_KEY as string);
-    console.log(decoded);
     return decoded;
   } catch (error) {
     throw error;

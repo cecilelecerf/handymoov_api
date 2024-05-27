@@ -9,21 +9,23 @@ import Issue from "../models/issueModel";
 
 export const postAIssue = async (req: UserRequest, res: Response) => {
   try {
+    console.log(req.body);
     if (!req.body.label) {
-      return res.status(404).json({ message: "Object obligatoire" });
+      return res.status(404).json({ msg: "Object obligatoire" });
     }
-    if (!req.body.gpsCoordinate) {
-      return res.status(404).json({ message: "Description obligatoire" });
+    if (!req.body.gpsCoordinateLat || !req.body.gpsCoordinateLng) {
+      return res.status(404).json({ msg: "Coordonées manquantes" });
     }
     await Issue.create({
       label: req.body.label,
-      gpsCoordinate: req.body.gpsCoordinate,
+      gpsCoordinateLat: req.body.gpsCoordinateLat,
+      gpsCoordinateLgn: req.body.gpsCoordinateLng,
       actif: true,
       user_id: req.user.id,
     });
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -34,13 +36,12 @@ export const postAIssue = async (req: UserRequest, res: Response) => {
 export const getAllIssues = async (req: Request, res: Response) => {
   try {
     const issues = await Issue.findAll();
-    if (!issues)
-      return res.status(400).json({ message: "Aucune issues trouvés" });
+    if (!issues) return res.status(400).json({ msg: "Aucune issues trouvés" });
 
     res.status(200).json(issues);
   } catch (error) {
     res.status(500).json({
-      message: `Erreur lors du traitement des données.`,
+      msg: `Erreur lors du traitement des données.`,
     });
   }
 };
@@ -52,13 +53,12 @@ export const getAllIssues = async (req: Request, res: Response) => {
 export const getAllIssuesUser = async (req: UserRequest, res: Response) => {
   try {
     const issues = await Issue.findAll({ where: { user_id: req.user.id } });
-    if (!issues)
-      return res.status(404).json({ message: "Aucune issues trouvés" });
+    if (!issues) return res.status(404).json({ msg: "Aucune issues trouvés" });
 
     res.status(200).json(issues);
   } catch (error) {
     res.status(500).json({
-      message: `Erreur lors du traitement des données.`,
+      msg: `Erreur lors du traitement des données.`,
     });
   }
 };
@@ -70,13 +70,12 @@ export const getAllIssuesUser = async (req: UserRequest, res: Response) => {
 export const getAllIssuesActif = async (req: Request, res: Response) => {
   try {
     const issues = await Issue.findAll({ where: { actif: true } });
-    if (!issues)
-      return res.status(400).json({ message: "Aucune issues trouvées" });
+    if (!issues) return res.status(400).json({ msg: "Aucune issues trouvées" });
 
     res.status(200).json(issues);
   } catch (error) {
     res.status(500).json({
-      message: `Erreur lors du traitement des données.`,
+      msg: `Erreur lors du traitement des données.`,
     });
   }
 };
@@ -91,11 +90,11 @@ export const getAIssue = async (req: Request, res: Response) => {
     });
 
     if (!issue) {
-      return res.status(404).json({ message: "Issue non trouvée." });
+      return res.status(404).json({ msg: "Issue non trouvée." });
     }
     res.status(200).json(issue);
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -107,21 +106,24 @@ export const putAIssue = async (req: Request, res: Response) => {
   try {
     const issue = await Issue.findByPk(req.params.issue_id);
     if (!issue) {
-      return res.status(404).json({ message: "Issue non trouvée." });
+      return res.status(404).json({ msg: "Issue non trouvée." });
     }
     await Issue.update(
       {
         label: req.body.label ? req.body.label : issue.label,
-        gpsCoordinate: req.body.gpsCoordinate
+        gpsCoordinateLat: req.body.gpsCoordinateLat
           ? req.body.gpsCoordinate
-          : issue.gpsCoordinate,
+          : issue.gpsCoordinateLat,
+        gpsCoordinateLgn: req.body.gpsCoordinateLgn
+          ? req.body.gpsCoordinate
+          : issue.gpsCoordinateLgn,
         modifiedAt: new Date(Date.now()),
       },
       { where: { id: req.params.issue_id } }
     );
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -136,10 +138,10 @@ export const deleteAIssue = async (req: Request, res: Response) => {
     });
 
     if (!issue) {
-      return res.status(404).json({ message: "Issue non trouvé." });
+      return res.status(404).json({ msg: "Issue non trouvé." });
     }
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

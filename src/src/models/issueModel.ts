@@ -1,8 +1,6 @@
 import {
   CreationOptional,
-  DATE,
   DataTypes,
-  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
@@ -22,7 +20,8 @@ class Issue extends Model<
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
-  declare gpsCoordinate: string;
+  declare gpsCoordinateLat: number;
+  declare gpsCoordinateLgn: number;
   declare actif: boolean;
   declare user_id: number;
 }
@@ -43,18 +42,24 @@ Issue.init(
     },
     label: {
       type: DataTypes.CHAR(100),
-      unique: true,
       allowNull: false,
     },
-    gpsCoordinate: {
-      type: DataTypes.CHAR(100),
+    gpsCoordinateLat: {
+      type: DataTypes.DECIMAL(25, 20),
+      allowNull: false,
+    },
+    gpsCoordinateLgn: {
+      type: DataTypes.DECIMAL(25, 20),
+      allowNull: false,
     },
     actif: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+      allowNull: false,
     },
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
     },
   },
   {

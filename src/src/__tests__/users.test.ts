@@ -171,7 +171,7 @@ describe("User", () => {
         .send({ ...registerUser, passwordConfirmation: "123" });
       expect(statusCode).toBe(409);
       expect(body).toEqual({
-        message: "Les mots de passe ne sont pas identiques",
+        msg: "Les mots de passe ne sont pas identiques",
       });
     });
 
@@ -181,7 +181,7 @@ describe("User", () => {
         .post("/users/register")
         .send(registerUser);
       expect(statusCode).toBe(409);
-      expect(body).toEqual({ message: "Cet email existe déjà." });
+      expect(body).toEqual({ msg: "Cet email existe déjà." });
     });
   });
 

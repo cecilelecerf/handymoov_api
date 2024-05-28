@@ -10,14 +10,15 @@ import Issue from "../models/issueModel";
 export const postAIssue = async (req: UserRequest, res: Response) => {
   try {
     if (!req.body.label) {
-      return res.status(404).json({ message: "Object obligatoire" });
+      return res.status(404).json({ message: "Label obligatoire" });
     }
-    if (!req.body.gpsCoordinate) {
-      return res.status(404).json({ message: "Description obligatoire" });
+    if (!req.body.gpsCoordinateLat || !req.body.gpsCoordinateLng) {
+      return res.status(404).json({ message: "Coordonées obligatoire" });
     }
     await Issue.create({
       label: req.body.label,
-      gpsCoordinate: req.body.gpsCoordinate,
+      gpsCoordinateLat: req.body.gpsCoordinateLat,
+      gpsCoordinateLng: req.body.gpsCoordinateLng,
       actif: true,
       user_id: req.user.id,
     });
@@ -112,9 +113,12 @@ export const putAIssue = async (req: Request, res: Response) => {
     await Issue.update(
       {
         label: req.body.label ? req.body.label : issue.label,
-        gpsCoordinate: req.body.gpsCoordinate
-          ? req.body.gpsCoordinate
-          : issue.gpsCoordinate,
+        gpsCoordinateLat: req.body.gpsCoordinate
+          ? req.body.gpsCoordinateLat
+          : issue.gpsCoordinateLat,
+        gpsCoordinateLng: req.body.gpsCoordinate
+          ? req.body.gpsCoordinateLng
+          : issue.gpsCoordinateLng,
         modifiedAt: new Date(Date.now()),
       },
       { where: { id: req.params.issue_id } }

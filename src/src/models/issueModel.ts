@@ -22,7 +22,8 @@ class Issue extends Model<
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
-  declare gpsCoordinate: string;
+  declare gpsCoordinateLat: number;
+  declare gpsCoordinateLng: number;
   declare actif: boolean;
   declare user_id: number;
 }
@@ -46,8 +47,11 @@ Issue.init(
       unique: true,
       allowNull: false,
     },
-    gpsCoordinate: {
-      type: DataTypes.CHAR(100),
+    gpsCoordinateLat: {
+      type: DataTypes.DECIMAL(25, 20),
+    },
+    gpsCoordinateLng: {
+      type: DataTypes.DECIMAL(25, 20),
     },
     actif: {
       type: DataTypes.BOOLEAN,

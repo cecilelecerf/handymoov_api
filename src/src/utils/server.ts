@@ -6,6 +6,7 @@ import issueRoute from "../routes/issueRoute";
 import newsletterRoute from "../routes/newsletterRoute";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger/swagger_config";
+import journeyRoute from "../routes/journeyRoute";
 
 function createServer() {
   const app = express();
@@ -20,6 +21,7 @@ function createServer() {
   app.use("/feedbacks", feedbackRoute);
   app.use("/newsletters", newsletterRoute);
   app.use("/issues", issueRoute);
+  app.use("/journeys", journeyRoute);
   return app;
 }
 export default createServer;

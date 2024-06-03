@@ -119,7 +119,7 @@ export const loginAUser = async (req: Request, res: Response) => {
       else return res.status(400).json(validationError);
     }
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -132,12 +132,12 @@ export const getAUser = async (req: UserRequest, res: Response) => {
     const user = await User.findByPk(req.user.id);
 
     if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
     }
 
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -149,7 +149,7 @@ export const putAUser = async (req: UserRequest, res: Response) => {
   try {
     let user = await User.findByPk(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
     }
     const {
       email,
@@ -213,7 +213,7 @@ export const putAUser = async (req: UserRequest, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -225,7 +225,7 @@ export const deleteAUser = async (req: UserRequest, res: Response) => {
   try {
     const user = await User.findByPk(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
     }
     await PersonalizedAddress.destroy({ where: { user_id: user.id } });
     await User.destroy({
@@ -234,7 +234,7 @@ export const deleteAUser = async (req: UserRequest, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -247,6 +247,6 @@ export const getAllUser = async (req: UserRequest, res: Response) => {
     const users = await User.findAll();
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

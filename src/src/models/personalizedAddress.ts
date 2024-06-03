@@ -26,6 +26,8 @@ class PersonalizedAddress extends Model<
   declare city?: string;
   declare street?: string;
   declare number?: string;
+  declare lat?: number;
+  declare lng?: number;
   declare user_id: number;
 }
 PersonalizedAddress.init(
@@ -61,6 +63,14 @@ PersonalizedAddress.init(
     },
     number: {
       type: DataTypes.CHAR(10),
+      allowNull: true,
+    },
+    lat: {
+      type: DataTypes.DECIMAL(25, 20),
+      allowNull: true,
+    },
+    lng: {
+      type: DataTypes.DECIMAL(25, 20),
       allowNull: true,
     },
     user_id: {

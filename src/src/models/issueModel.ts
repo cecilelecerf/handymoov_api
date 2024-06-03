@@ -1,8 +1,6 @@
 import {
   CreationOptional,
-  DATE,
   DataTypes,
-  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
@@ -44,7 +42,6 @@ Issue.init(
     },
     label: {
       type: DataTypes.CHAR(100),
-      unique: true,
       allowNull: false,
     },
     gpsCoordinateLat: {
@@ -56,9 +53,11 @@ Issue.init(
     actif: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+      allowNull: false,
     },
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
     },
   },
   {

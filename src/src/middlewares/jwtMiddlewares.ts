@@ -28,9 +28,7 @@ export const verifyToken = async (
   try {
     const token = req.headers["authorization"];
     if (!token) {
-      return res
-        .status(403)
-        .json({ message: "Accès interdit: token manquant" });
+      return res.status(403).json({ msg: "Accès interdit: token manquant" });
     }
 
     const payload = verifyJWT(token as string);
@@ -38,7 +36,7 @@ export const verifyToken = async (
     next();
   } catch (error) {
     console.error("Erreur de vérification du token:", error);
-    res.status(403).json({ message: "Accès interdit: token invalide" });
+    res.status(403).json({ msg: "Accès interdit: token invalide" });
   }
 };
 
@@ -51,9 +49,7 @@ export const isAdmin = async (
   try {
     const token = req.headers["authorization"] as string;
     if (!token) {
-      return res
-        .status(403)
-        .json({ message: "Accès interdit: token manquant" });
+      return res.status(403).json({ msg: "Accès interdit: token manquant" });
     }
 
     const payload = await verifyJWT(token);
@@ -65,10 +61,10 @@ export const isAdmin = async (
     } else {
       res
         .status(403)
-        .json({ message: "Accès interdit: rôle administrateur requis" });
+        .json({ msg: "Accès interdit: rôle administrateur requis" });
     }
   } catch (error) {
     console.error("Erreur de vérification du token:", error);
-    res.status(403).json({ message: "Accès interdit: token invalide" });
+    res.status(403).json({ msg: "Accès interdit: token invalide" });
   }
 };

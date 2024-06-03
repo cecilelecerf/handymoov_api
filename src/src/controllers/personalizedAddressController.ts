@@ -17,12 +17,12 @@ export const getAllPersonalizedAddress = async (
       where: { user_id: req.user.id },
     });
     if (!personalizedAddress)
-      return res.status(400).json({ message: "Aucune adresse trouvée" });
+      return res.status(400).json({ msg: "Aucune adresse trouvée" });
 
     res.status(200).json(personalizedAddress);
   } catch (error) {
     res.status(500).json({
-      message: `Erreur lors du traitement des données.`,
+      msg: `Erreur lors du traitement des données.`,
     });
   }
 };
@@ -38,11 +38,11 @@ export const getAPersonalizedAddress = async (req: Request, res: Response) => {
     });
 
     if (!personalizedAddress) {
-      return res.status(404).json({ message: "Addresse non trouvée." });
+      return res.status(404).json({ msg: "Addresse non trouvée." });
     }
     res.status(200).json(personalizedAddress);
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -56,7 +56,7 @@ export const putAPersonalizedAddress = async (req: Request, res: Response) => {
       req.params.personalizedAddress_id
     );
     if (!personalizedAddress) {
-      return res.status(404).json({ message: "Adresse non trouvée." });
+      return res.status(404).json({ msg: "Adresse non trouvée." });
     }
     await PersonalizedAddress.update(
       {
@@ -72,7 +72,7 @@ export const putAPersonalizedAddress = async (req: Request, res: Response) => {
     );
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -102,11 +102,11 @@ export const deleteAPersonalizedAddress = async (
       });
 
       if (!personalizedAddress) {
-        return res.status(404).json({ message: "Addresse non trouvé." });
+        return res.status(404).json({ msg: "Addresse non trouvé." });
       }
       res.status(204).send();
     }
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

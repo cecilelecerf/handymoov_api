@@ -46,12 +46,11 @@ Feedback.init(
       allowNull: false,
     },
     description: {
-      type: DataTypes.CHAR(300),
+      type: DataTypes.CHAR,
       allowNull: false,
     },
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
     },
     read: {
       type: DataTypes.BOOLEAN,

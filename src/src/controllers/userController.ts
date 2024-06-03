@@ -1,110 +1,80 @@
-import User from "../models/userModel";
-import { Response } from "express";
-import { Request } from "express";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserRequest } from "../middlewares/jwtMiddlewares";
 import PersonalizedAddress from "../models/personalizedAddress";
-import { body, validationResult } from "express-validator";
 
 /**********************************************************
             MÉTHODE POUR ENREGISTRER UN UTILISATEUR
 **********************************************************/
+// TODO mettre la vérification à part
+import { Request, Response } from "express";
+import User from "../models/userModel";
+import bcrypt from "bcrypt";
+import {
+  validPassword,
+  validateConfirmEmail,
+  validateConfirmPassword,
+  validateEmail,
+  validateFirstname,
+  validateLastname,
+  validatePassword,
+  validateRole,
+} from "../validations/userValidation";
 
 export const registerAUser = async (req: Request, res: Response) => {
   try {
-    if (!req.body.email)
-      return res.status(400).json({
-        param: ["email"],
-        msg: "Votre email est obligatoire.",
-      });
+    const { email, firstname, lastname, password, confirmPassword, role } =
+      req.body;
 
-    if (req.body.email.length < 5 || req.body.email.length > 70)
-      return res.status(400).json({
-        param: ["email"],
-        msg: "Votre email doit contenir entre 5 et 70 caractères.",
-      });
-
-    const existingEmail = await User.findOne({
-      where: { email: req.body.email },
-    });
-    if (existingEmail) {
-      return res.status(409).json({
-        param: ["email"],
-        msg: "Cet email existe déjà.",
-      });
+    try {
+      await validateEmail({ email });
+      validateFirstname({ firstname });
+      validateLastname({ lastname });
+      validatePassword({ password });
+      validateConfirmPassword({ password, confirmPassword });
+      validateRole(role);
+    } catch (validationError) {
+      console.log(validationError);
+      if (validationError.status) {
+        return res.status(validationError.status).json({
+          msg: validationError.msg,
+          param: validationError.param,
+        });
+      } else {
+        return res.status(400).json({
+          msg: validationError.msg,
+          param: validationError.param,
+        });
+      }
     }
 
-    if (!req.body.firstname)
-      return res.status(400).json({
-        param: ["firstname"],
-        msg: "Votre prénom est obligatoire.",
-      });
-
-    if (req.body.firstname.length < 5 || req.body.firstname.length > 50)
-      return res.status(400).json({
-        param: ["firstname"],
-        msg: "Votre prénom doit contenir entre 5 et 70 caractères.",
-      });
-
-    if (!req.body.lastname)
-      return res.status(400).json({
-        param: ["lastname"],
-        msg: "Votre nom est obligatoire.",
-      });
-
-    if (req.body.lastname.length < 5 || req.body.lastname.length > 50)
-      return res.status(400).json({
-        param: ["lastname"],
-        msg: "Votre nom doit contenir entre 5 et 70 caractères.",
-      });
-    if (!req.body.password)
-      return res.status(400).json({
-        param: ["password"],
-        msg: "Le mot de passe est obligatoire.",
-      });
-    console.log(req.body.password);
-    console.log(req.body);
-    if (req.body.password !== req.body.confirmPassword)
-      return res.status(409).json({
-        param: ["confirmPassword"],
-        msg: "Les mots de passe ne sont pas identiques",
-      });
-
-    if (req.body.role === "admin") {
-      return res.status(400).json({
-        param: ["role"],
-        msg: "Vous ne pouvez pas créer un utilisateur avec le rôle admin.",
-      });
-    }
-    // TODO : for dev and test
     let user: User;
-    if (req.body.email === "admin@handymoov.com") {
+    if (email === "admin@handymoov.com") {
       user = await User.create({
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        password: req.body.password,
-        email: req.body.email,
-        role: "admin", // Assignez le rôle d'administrateur si l'e-mail correspond
+        firstname,
+        lastname,
+        password,
+        email,
+        role: "admin",
       });
     } else {
       user = await User.create({
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        password: req.body.password,
-        email: req.body.email,
+        firstname,
+        lastname,
+        password,
+        email,
         role: "user",
       });
     }
 
-    ["Maison", "Travail"].map(
-      async (value) =>
-        await PersonalizedAddress.create({ label: value, user_id: user.id })
-    );
+    ["Maison", "Travail"].map(async (value) => {
+      await PersonalizedAddress.create({ label: value, user_id: user.id });
+    });
+
     res.status(204).send();
   } catch (error) {
+    console.log(error);
     res.status(500).json({
-      msg: `Erreur lors du traitement des données.`,
+      msg: "Erreur lors du traitement des données.",
     });
   }
 };
@@ -124,12 +94,11 @@ export const loginAUser = async (req: Request, res: Response) => {
       });
     }
 
-    const validPassword = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-
-    if (validPassword) {
+    try {
+      await validPassword({
+        reqPassword: req.body.password,
+        userPassword: user.password,
+      });
       const userData = {
         id: user.id,
         email: user.email,
@@ -141,13 +110,13 @@ export const loginAUser = async (req: Request, res: Response) => {
       const token = jwt.sign(userData, process.env.JWT_KEY, {
         expiresIn: "30d",
       });
-
       res.status(200).json({ token });
-    } else {
-      res.status(401).json({
-        param: ["email", "password"],
-        msg: "Email ou mot de passe incorrect.",
-      });
+    } catch (validationError) {
+      if (validationError.status)
+        return res
+          .status(validationError.status)
+          .json({ msg: validationError.msg, param: validationError.param });
+      else return res.status(400).json(validationError);
     }
   } catch (error) {
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
@@ -182,34 +151,54 @@ export const putAUser = async (req: UserRequest, res: Response) => {
     if (!user) {
       return res.status(404).json({ msg: "Utilisateur non trouvé." });
     }
-    await Promise.all([
-      body("email")
-        .trim()
-        .optional()
-        .isEmail()
-        .escape()
-        .isLength({ min: 5, max: 70 })
-        .run(req),
-      body("firstname")
-        .trim()
-        .isLength({ min: 3, max: 50 })
-        .optional()
-        .escape()
-        .run(req),
-      body("lastname")
-        .trim()
-        .optional()
-        .isLength({ min: 3, max: 50 })
-        .escape()
-        .run(req),
-      body("password").trim().optional().escape().run(req),
-    ]);
+    const {
+      email,
+      confirmEmail,
+      lastEmail,
+      firstname,
+      lastname,
+      password,
+      lastPassword,
+      confirmPassword,
+    } = req.body;
 
-    // Vérification des erreurs de validation
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log(errors);
-      return res.status(400).json({ errors: errors.array() });
+    try {
+      if (email || confirmEmail || lastEmail) {
+        validateConfirmEmail({
+          email,
+          confirmEmail,
+          lastEmail,
+          userEmail: req.user.email,
+        });
+        await validateEmail({ email });
+      }
+      if (firstname) {
+        validateFirstname({ firstname, required: false });
+      }
+      if (lastname) {
+        validateLastname({ lastname, required: false });
+      }
+      if (password || lastPassword || confirmPassword) {
+        console.log(password);
+        validatePassword({ password });
+        validateConfirmPassword({
+          password,
+          confirmPassword,
+          lastPassword,
+          userPassword: user.password,
+        });
+        await validPassword({
+          reqPassword: lastPassword,
+          userPassword: user.password,
+        });
+      }
+    } catch (validationError) {
+      console.error(validationError);
+      if (validationError.status)
+        return res
+          .status(validationError.status)
+          .json({ msg: validationError.msg, param: validationError.param });
+      else return res.status(400).json(validationError);
     }
 
     await user.update({

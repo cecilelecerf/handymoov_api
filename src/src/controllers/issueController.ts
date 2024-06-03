@@ -11,15 +11,19 @@ export const postAIssue = async (req: UserRequest, res: Response) => {
   try {
     console.log(req.body);
     if (!req.body.label) {
-      return res.status(404).json({ msg: "Object obligatoire" });
+
+      return res.status(404).json({ message: "Label obligatoire" });
     }
     if (!req.body.gpsCoordinateLat || !req.body.gpsCoordinateLng) {
-      return res.status(404).json({ msg: "Coordonées manquantes" });
+      return res.status(404).json({ message: "Coordonées obligatoire" });
+
     }
     await Issue.create({
       label: req.body.label,
       gpsCoordinateLat: req.body.gpsCoordinateLat,
-      gpsCoordinateLgn: req.body.gpsCoordinateLng,
+
+      gpsCoordinateLng: req.body.gpsCoordinateLng,
+
       actif: true,
       user_id: req.user.id,
     });
@@ -111,12 +115,14 @@ export const putAIssue = async (req: Request, res: Response) => {
     await Issue.update(
       {
         label: req.body.label ? req.body.label : issue.label,
-        gpsCoordinateLat: req.body.gpsCoordinateLat
-          ? req.body.gpsCoordinate
+
+        gpsCoordinateLat: req.body.gpsCoordinate
+          ? req.body.gpsCoordinateLat
           : issue.gpsCoordinateLat,
-        gpsCoordinateLgn: req.body.gpsCoordinateLgn
-          ? req.body.gpsCoordinate
-          : issue.gpsCoordinateLgn,
+        gpsCoordinateLng: req.body.gpsCoordinate
+          ? req.body.gpsCoordinateLng
+          : issue.gpsCoordinateLng,
+
         modifiedAt: new Date(Date.now()),
       },
       { where: { id: req.params.issue_id } }

@@ -18,14 +18,11 @@ export const postACurrentIssue = async (req: UserRequest, res: Response) => {
       issue_id: req.body.issue_id,
       actif: req.body.actif,
     });
-    const amountAll = await CurrentIssue.count({
-      where: { issue_id: req.body.issue_id },
-    });
     const amountActif = await CurrentIssue.count({
       where: { issue_id: req.body.issue_id, actif: true },
     });
-    const result = (amountActif / amountAll) * 0.01;
-    if (result < 0.5) {
+
+    if (amountActif === 3) {
       await Issue.update(
         {
           actif: false,

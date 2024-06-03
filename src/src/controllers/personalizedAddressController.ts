@@ -1,4 +1,3 @@
-import User from "../models/userModel";
 import { Response } from "express";
 import { Request } from "express";
 import { UserRequest } from "../middlewares/jwtMiddlewares";

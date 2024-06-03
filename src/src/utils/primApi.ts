@@ -13,21 +13,25 @@ apiRatp.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-interface LatLng {
-  lat: number;
-  lng: number;
-}
 
+const encodeId = (coordinateString: string) => {
+  if (typeof coordinateString !== "string") {
+    throw new TypeError("coordinateString must be a string");
+  }
+  return coordinateString.replace(";", "%3B");
+};
 export const getJourney = async ({
   from,
   to,
 }: {
-  from: LatLng;
-  to: LatLng;
+  from: string;
+  to: string;
 }) => {
+  from = encodeId(from);
+  to = encodeId(to);
+
   const response = await apiRatp.get(
-    `/journeys?from=${from.lat}%3B${from.lng}9&to=${to.lat}%3B${to.lng}&max_nb_transfers=4&max_nb_journeys=3`
+    `/journeys?from=${from}&to=${to}&wheelchair=true`
   );
-  console.log(response.data);
   return response.data;
 };

@@ -1,66 +1,71 @@
-import supertest from "supertest";
 import createServer from "../utils/server";
+import supertest from "supertest";
 import User from "../models/userModel";
 import PersonalizedAddress from "../models/personalizedAddress";
+import { Op } from "sequelize";
+
 interface UserProps {
   email: string;
   firstname: string;
   lastname: string;
   password: string;
 }
+
 interface RegisterUserProps {
   email: string;
   firstname: string;
   lastname: string;
   password: string;
-  passwordConfirmation: string;
+  confirmPassword: string;
 }
+
 let user: UserProps = {
   email: "register@example.com",
-  firstname: "Jedzeddeohn",
-  lastname: "Dezezdezoe",
-  password: "12zaaz3",
+  firstname: "Jedzeddeoahn",
+  lastname: "Dezezdzezoe",
+  password: "Aa1&azaP",
 };
+
 const registerUser: RegisterUserProps = {
   email: user["email"],
   firstname: user["firstname"],
   lastname: user["lastname"],
   password: user["password"],
-  passwordConfirmation: user["password"],
+  confirmPassword: user["password"],
 };
 
 interface LoginUserProps {
   email: RegisterUserProps["email"];
   password: RegisterUserProps["password"];
 }
+
 const loginUser: LoginUserProps = {
   email: registerUser.email,
   password: registerUser.password,
 };
+
 const registerAdminUser: RegisterUserProps = {
   email: "admin@handymoov.com",
   firstname: user["firstname"],
   lastname: user["lastname"],
   password: user["password"],
-  passwordConfirmation: user["password"],
+  confirmPassword: user["password"],
 };
+
 const app = createServer();
 
 describe("User", () => {
   afterEach(async () => {
     await PersonalizedAddress.destroy({ where: {} });
-    await User.destroy({ where: { email: registerUser.email } });
-    await User.destroy({
-      where: { email: registerAdminUser.email || "invalidemail" },
-    });
+    await User.destroy({ where: { email: { [Op.notLike]: "%Test%" } } });
   });
 
   describe("POST /register", () => {
     it("should return 204 when registering a new user", async () => {
-      const response = await supertest(app)
+      const { statusCode } = await supertest(app)
         .post("/users/register")
         .send(registerUser);
-      expect(response.status).toBe(204);
+      expect(statusCode).toBe(204);
     });
 
     describe("should return 400 if information is missing", () => {
@@ -72,29 +77,8 @@ describe("User", () => {
 
         expect(statusCode).toBe(400);
         expect(body).toEqual({
-          errors: [
-            {
-              location: "body",
-              msg: "Invalid value",
-              path: "email",
-              type: "field",
-              value: "",
-            },
-            {
-              location: "body",
-              msg: "Invalid value",
-              path: "email",
-              type: "field",
-              value: "",
-            },
-            {
-              location: "body",
-              msg: "L'email est obligatoire et doit être une adresse email valide",
-              path: "email",
-              type: "field",
-              value: "",
-            },
-          ],
+          param: ["email"],
+          msg: "Votre email est obligatoire.",
         });
       });
 
@@ -105,29 +89,8 @@ describe("User", () => {
           .send(inputUser);
         expect(statusCode).toBe(400);
         expect(body).toEqual({
-          errors: [
-            {
-              location: "body",
-              msg: "Invalid value",
-              path: "firstname",
-              type: "field",
-              value: "",
-            },
-            {
-              location: "body",
-              msg: "Invalid value",
-              path: "firstname",
-              type: "field",
-              value: "",
-            },
-            {
-              location: "body",
-              msg: "Le prénom est obligatoire",
-              path: "firstname",
-              type: "field",
-              value: "",
-            },
-          ],
+          param: ["firstname"],
+          msg: "Votre prénom est obligatoire.",
         });
       });
 
@@ -138,29 +101,62 @@ describe("User", () => {
           .send(inputUser);
         expect(statusCode).toBe(400);
         expect(body).toEqual({
-          errors: [
-            {
-              location: "body",
-              msg: "Invalid value",
-              path: "lastname",
-              type: "field",
-              value: "",
-            },
-            {
-              location: "body",
-              msg: "Invalid value",
-              path: "lastname",
-              type: "field",
-              value: "",
-            },
-            {
-              location: "body",
-              msg: "Le nom est obligatoire",
-              path: "lastname",
-              type: "field",
-              value: "",
-            },
-          ],
+          param: ["lastname"],
+          msg: "Votre nom est obligatoire.",
+        });
+      });
+    });
+
+    describe("should return 409 if lastname or firstname is not the correct length", () => {
+      it("fistname > 50 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send({
+            ...registerUser,
+            firstname:
+              "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["firstname"],
+          msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
+        });
+      });
+
+      it("lastname < 5 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send({ ...registerUser, lastname: "123" });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["lastname"],
+          msg: "Votre nom doit contenir entre 5 et 50 caractères.",
+        });
+      });
+
+      it("fistname < 5 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send({ ...registerUser, firstname: "123" });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["firstname"],
+          msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
+        });
+      });
+
+      it("lastname > 50 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send({
+            ...registerUser,
+            lastname:
+              "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["lastname"],
+          msg: "Votre nom doit contenir entre 5 et 50 caractères.",
         });
       });
     });
@@ -168,26 +164,193 @@ describe("User", () => {
     it("should return 409 if password is different from confirmPassword", async () => {
       const { statusCode, body } = await supertest(app)
         .post("/users/register")
-        .send({ ...registerUser, passwordConfirmation: "123" });
+        .send({ ...registerUser, confirmPassword: "123" });
       expect(statusCode).toBe(409);
       expect(body).toEqual({
-        message: "Les mots de passe ne sont pas identiques",
+        param: ["confirmPassword"],
+        msg: "Les mots de passe ne sont pas identiques.",
       });
     });
 
-    it("should return 409 if duplicate email", async () => {
-      await supertest(app).post("/users/register").send(registerUser);
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send(registerUser);
-      expect(statusCode).toBe(409);
-      expect(body).toEqual({ message: "Cet email existe déjà." });
+    describe("validate email", () => {
+      it("should return 409 if duplicate email", async () => {
+        await supertest(app).post("/users/register").send(registerUser);
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(registerUser);
+        expect(statusCode).toBe(409);
+        expect(body).toEqual({
+          param: ["email"],
+          msg: "Cet email existe déjà.",
+        });
+      });
+
+      it("should return 400 if email format is invalid", async () => {
+        const response = await supertest(app)
+          .post("/users/register")
+          .send({ ...registerUser, email: "invalidemail" });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({
+          param: ["email"],
+          msg: "Le format de l'email est invalide.",
+        });
+      });
+
+      describe(" should return 409 if email is not the correct length", () => {
+        it("email > 70", async () => {
+          const response = await supertest(app)
+            .post("/users/register")
+            .send({
+              ...registerUser,
+              email: `${"a".repeat(41)}@${"a".repeat(40)} .com`,
+            });
+
+          expect(response.statusCode).toBe(400);
+          expect(response.body).toEqual({
+            param: ["email"],
+            msg: "Votre email doit contenir entre 5 et 70 caractères.",
+          });
+        });
+      });
+
+      describe("should return 400 if the part before '@' is too short or too long", () => {
+        it("if part before is too long", async () => {
+          const responseShort = await supertest(app)
+            .post("/users/register")
+            .send({ ...registerUser, email: "a".repeat(41) + "@example.com" });
+
+          expect(responseShort.statusCode).toBe(400);
+          expect(responseShort.body).toEqual({
+            param: ["email"],
+            msg: "La partie avant l’arobase doit contenir entre 1 et 40 caractères.",
+          });
+        });
+      });
+
+      describe("should return 400 if the part after '@' is too short or too long", () => {
+        it("if part after is too short", async () => {
+          const responseShort = await supertest(app)
+            .post("/users/register")
+            .send({ ...registerUser, email: "azz@b.c" });
+
+          expect(responseShort.statusCode).toBe(400);
+          expect(responseShort.body).toEqual({
+            param: ["email"],
+            msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
+          });
+        });
+
+        it("if part after is too long", async () => {
+          const responseShort = await supertest(app)
+            .post("/users/register")
+            .send({
+              ...registerUser,
+              email: "john@" + "a".repeat(41) + ".com",
+            });
+
+          expect(responseShort.statusCode).toBe(400);
+          expect(responseShort.body).toEqual({
+            param: ["email"],
+            msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
+          });
+        });
+      });
+    });
+    describe("validate password", () => {
+      it("should return 400 if password is less than 7 characters", async () => {
+        const inputUser = {
+          ...registerUser,
+          password: "Pass1!",
+          confirmPassword: "Pass1!",
+        };
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(inputUser);
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["password"],
+          msg: "Le mot de passe doit comporter plus de 7 caractères.",
+        });
+      });
+
+      it("should return 400 if password does not contain an uppercase letter", async () => {
+        const inputUser = {
+          ...registerUser,
+          password: "password1!",
+          confirmPassword: "password1!",
+        };
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(inputUser);
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["password"],
+          msg: "Le mot de passe doit contenir au moins une majuscule.",
+        });
+      });
+
+      it("should return 400 if password does not contain a lowercase letter", async () => {
+        const inputUser = {
+          ...registerUser,
+          password: "PASSWORD1!",
+          confirmPassword: "PASSWORD1!",
+        };
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(inputUser);
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["password"],
+          msg: "Le mot de passe doit contenir au moins une minuscule.",
+        });
+      });
+
+      it("should return 400 if password does not contain a number", async () => {
+        const inputUser = {
+          ...registerUser,
+          password: "Password!",
+          confirmPassword: "Password!",
+        };
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(inputUser);
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["password"],
+          msg: "Le mot de passe doit contenir au moins un chiffre.",
+        });
+      });
+
+      it("should return 400 if password does not contain a special character", async () => {
+        const inputUser = {
+          ...registerUser,
+          password: "Password1",
+          confirmPassword: "Password1",
+        };
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(inputUser);
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["password"],
+          msg: "Le mot de passe doit contenir au moins un caractère spécial.",
+        });
+      });
     });
   });
 
   describe("POST /login", () => {
-    it("should return a token and 200 if email and password are correct", async () => {
+    let token: string;
+    beforeEach(async () => {
       await supertest(app).post("/users/register").send(registerUser);
+    });
+    it("should return a token and 200 if email and password are correct", async () => {
       const { statusCode, body } = await supertest(app)
         .post("/users/login")
         .send(loginUser);
@@ -201,40 +364,37 @@ describe("User", () => {
           .post("/users/login")
           .send({ email: "lala@gmail.com", password: registerUser.password });
         expect(statusCode).toBe(401);
-        expect(body).toEqual({ message: "Email ou mot de passe incorrect." });
+        expect(body).toEqual({
+          param: ["email", "password"],
+          msg: "Email ou mot de passe incorrect.",
+        });
       });
       it("password is wrong", async () => {
-        await User.create({
-          email: registerUser.email,
-          firstname: registerUser.firstname,
-          lastname: registerUser.lastname,
-          password: registerUser.password,
-        });
         const { statusCode, body } = await supertest(app)
           .post("/users/login")
           .send({ email: registerUser.email, password: "987" });
         expect(statusCode).toBe(401);
-        expect(body).toEqual({ message: "Email ou mot de passe incorrect." });
+        expect(body).toEqual({
+          param: ["email", "password"],
+          msg: "Email ou mot de passe incorrect.",
+        });
       });
     });
   });
   describe("GET /", () => {
     it("should return 200 when get a user", async () => {
-      // inscription
       await supertest(app).post("/users/register").send(registerUser);
-      // connexion
       const res = await supertest(app).post("/users/login").send(loginUser);
-      // test
       const { statusCode, body } = await supertest(app)
         .get("/users")
         .set("authorization", `${res.body.token}`);
       expect(statusCode).toBe(200);
       expect(body).toEqual({
         createdAt: expect.any(String),
-        email: "register@example.com",
-        firstname: "Jedzeddeohn",
+        email: registerUser.email,
+        firstname: registerUser.firstname,
         id: expect.any(Number),
-        lastname: "Dezezdezoe",
+        lastname: registerUser.lastname,
         modifiedAt: expect.any(String),
         password: expect.any(String),
         role: "user",
@@ -243,76 +403,285 @@ describe("User", () => {
     });
   });
   describe("PUT /users", () => {
-    it("should update user when user is found and data is valid", async () => {
-      // Préparation : Créer un utilisateur
+    let token: string;
+    beforeEach(async () => {
       await supertest(app).post("/users/register").send(registerUser);
       const loginRes = await supertest(app)
         .post("/users/login")
         .send(loginUser);
-
-      // Action : Mettre à jour l'utilisateur
-      // TODO : RAJOUTER l'email (problème actuellement si email = 500)
-      const updateRes = await supertest(app)
-        .put("/users")
-        .set("authorization", `${loginRes.body.token}`)
-        .send({ firstname: "bonjoru", lastname: "lala", password: "short" });
-
-      // Vérification : Assurez-vous que la mise à jour s'est bien déroulée
-      expect(updateRes.status).toBe(204);
+      token = loginRes.body.token;
     });
 
-    it("should return 400 if invalid data is provided", async () => {
-      // Préparation : Créer un utilisateur
-      await supertest(app).post("/users/register").send(registerUser);
-      const loginRes = await supertest(app)
-        .post("/users/login")
-        .send(loginUser);
+    describe("should return 204 if update is valid", () => {
+      it("update firstname", async () => {
+        const { statusCode } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({ firstname: "bonjoru" });
+        expect(statusCode).toBe(204);
+      });
+      it("update lastname", async () => {
+        const { statusCode } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({ lastname: "bonjoru" });
+        expect(statusCode).toBe(204);
+      });
+      it("update password", async () => {
+        const newPassword = "123Aze9@ie";
+        const { statusCode } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            password: newPassword,
+            lastPassword: loginUser.password,
+            confirmPassword: newPassword,
+          });
+        expect(statusCode).toBe(204);
+      });
+      it("update email", async () => {
+        const newEmail = "newEmail@gmail.com";
+        const { statusCode } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            email: newEmail,
+            lastEmail: loginUser.email,
+            confirmEmail: newEmail,
+          });
+        expect(statusCode).toBe(204);
+      });
+      // TODO it for birthday, picture, est handicapé ?
+    });
+    describe("missing with email", () => {
+      it("should return 400 if last email is missing", async () => {
+        const newEmail = "lala@gmail.com";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            email: newEmail,
+            confirmEmail: newEmail,
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toStrictEqual({
+          param: ["lastEmail"],
+          msg: "L'ancien email est obligatoire.",
+        });
+      });
+      it("should return 400 if email is missing", async () => {
+        const newEmail = "lala@gmail.com";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            lastEmail: registerUser.email,
+            confirmEmail: newEmail,
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toStrictEqual({
+          param: ["email"],
+          msg: "L'email est obligatoire.",
+        });
+      });
+      it("should return 400 if confirm email is missing", async () => {
+        const newEmail = "lala@gmail.com";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            lastEmail: registerUser.email,
+            email: newEmail,
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toStrictEqual({
+          param: ["confirmEmail"],
+          msg: "La confirmation d'email est obligatoire.",
+        });
+      });
 
-      // Action : Tenter de mettre à jour l'utilisateur avec des données invalides
-      const updateRes = await supertest(app)
-        .put("/users")
-        .set("authorization", `${loginRes.body.token}`)
-        .send({ email: "invalidemail", password: "short" });
+      it("should return 409 if email already exists", async () => {
+        const newUser: RegisterUserProps = {
+          email: "newuser@gmail.com",
+          password: "NewPass123EXIST!",
+          firstname: "Neeew",
+          lastname: "Useeer",
+          confirmPassword: "NewPass123EXIST!",
+        };
+        await supertest(app).post("/users/register").send(newUser);
 
-      // Vérification : Assurez-vous que la réponse indique des données invalides
-      expect(updateRes.status).toBe(400);
-      expect(updateRes.body).toEqual({
-        errors: [
-          {
-            location: "body",
-            msg: "Invalid value",
-            path: "email",
-            type: "field",
-            value: expect.any(String),
-          },
-        ],
-      }); // Assurez-vous que deux erreurs sont retournées
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            email: newUser.email,
+            lastEmail: registerUser.email,
+            confirmEmail: newUser.email,
+          });
+
+        expect(statusCode).toBe(409);
+        expect(body).toStrictEqual({
+          param: ["email"],
+          msg: "Cet email existe déjà.",
+        });
+      });
+      it("should return 400 if invalid last email", async () => {
+        const newEmail = "newEmail@gmail.com";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            email: newEmail,
+            lastEmail: "wrongLastEmail@gmail.com",
+            confirmEmail: newEmail,
+          });
+
+        expect(statusCode).toBe(400);
+        expect(body).toStrictEqual({
+          param: ["lastEmail"],
+          msg: "Email incorrect.",
+        });
+      });
+
+      it("should return 409 if email and confirm email mismatch", async () => {
+        const newEmail = "newEmail@gmail.com";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            email: newEmail,
+            lastEmail: loginUser.email,
+            confirmEmail: "mismatchEmail@gmail.com",
+          });
+
+        expect(statusCode).toBe(409);
+        expect(body).toStrictEqual({
+          param: ["confirmEmail"],
+          msg: "Les emails ne sont pas identiques.",
+        });
+      });
+
+      it("should return 400 if email being the same as last email", async () => {
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            email: loginUser.email,
+            lastEmail: loginUser.email,
+            confirmEmail: loginUser.email,
+          });
+
+        expect(statusCode).toBe(400);
+        expect(body).toStrictEqual({
+          param: ["email"],
+          msg: "Le nouvel email est similaire à celui déjà enregistré.",
+        });
+      });
+    });
+    describe("missing with password", () => {
+      it("should return 400 if invalid password format", async () => {
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({ password: "12345" });
+
+        expect(statusCode).toBe(400);
+        expect(body).toStrictEqual({
+          msg: "Le mot de passe doit comporter plus de 7 caractères.",
+          param: ["password"],
+        });
+      });
+
+      it("should return 409 if invalid password mismatch", async () => {
+        const newPassword = "NewPass123DIFFERENT!";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            password: newPassword,
+            confirmPassword: "DifferentPass123!",
+            lastPassword: loginUser.password,
+          });
+
+        expect(statusCode).toBe(409);
+        expect(body).toStrictEqual({
+          msg: "Les mots de passe ne sont pas identiques.",
+          param: ["confirmPassword"],
+        });
+      });
+      it("should return 401 if invalid last password", async () => {
+        const newPassword = "NewPass123WRONG!";
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            password: newPassword,
+            confirmPassword: newPassword,
+            lastPassword: "WrongPassword123!",
+          });
+
+        expect(statusCode).toBe(401);
+        expect(body).toStrictEqual({
+          msg: "Email ou mot de passe incorrect.",
+          param: ["email", "password"],
+        });
+      });
     });
 
-    it("should not update non-provided fields", async () => {
-      // Préparation : Créer un utilisateur
-      await supertest(app).post("/users/register").send(registerUser);
-      const loginRes = await supertest(app)
-        .post("/users/login")
-        .send(loginUser);
+    describe("should return 409 if lastname or firstname is not the correct length", () => {
+      it("fistname > 50 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            firstname:
+              "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["firstname"],
+          msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
+        });
+      });
 
-      // Action : Tenter de mettre à jour l'utilisateur sans fournir certains champs
-      const updateRes = await supertest(app)
-        .put("/users")
-        .set("authorization", `${loginRes.body.token}`)
-        .send({});
+      it("lastname < 5 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({ lastname: "123" });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["lastname"],
+          msg: "Votre nom doit contenir entre 5 et 50 caractères.",
+        });
+      });
 
-      // Vérification : Assurez-vous que la mise à jour ne modifie pas les champs non fournis
-      expect(updateRes.status).toBe(204);
+      it("fistname < 5 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({ firstname: "123" });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["firstname"],
+          msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
+        });
+      });
 
-      // Vérifiez que les champs non fournis n'ont pas été modifiés
-      const { body } = await supertest(app)
-        .get("/users/")
-        .set("authorization", `${loginRes.body.token}`);
-
-      expect(body.email).toBe(loginUser.email);
-      expect(body.firstname).toBe(registerUser.firstname);
-      expect(body.lastname).toBe(registerUser.lastname);
+      it("lastname > 50 character", async () => {
+        const { statusCode, body } = await supertest(app)
+          .put("/users")
+          .set("authorization", `${token}`)
+          .send({
+            lastname:
+              "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
+          });
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["lastname"],
+          msg: "Votre nom doit contenir entre 5 et 50 caractères.",
+        });
+      });
     });
   });
   describe("DELETE /users", () => {

@@ -1,15 +1,12 @@
 import {
   CreationOptional,
-  DATE,
   DataTypes,
-  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
   NOW,
   Sequelize,
 } from "sequelize";
-import User from "./userModel";
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
   dialect: "mysql",
@@ -23,9 +20,10 @@ class Issue extends Model<
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
-  declare gpsCoordinate: string;
+  declare gpsCoordinateLat: number;
+  declare gpsCoordinateLng: number;
   declare actif: boolean;
-  declare user_id: ForeignKey<User["id"]>;
+  declare user_id: number;
 }
 Issue.init(
   {
@@ -44,15 +42,22 @@ Issue.init(
     },
     label: {
       type: DataTypes.CHAR(100),
-      unique: true,
       allowNull: false,
     },
-    gpsCoordinate: {
-      type: DataTypes.CHAR(100),
+    gpsCoordinateLat: {
+      type: DataTypes.DECIMAL(25, 20),
+    },
+    gpsCoordinateLng: {
+      type: DataTypes.DECIMAL(25, 20),
     },
     actif: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+      allowNull: false,
+    },
+    user_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
     },
   },
   {
@@ -62,13 +67,11 @@ Issue.init(
     sequelize: db,
   }
 );
-Issue.belongsTo(User, { foreignKey: "user_id" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
     await Issue.sync({ force: false });
-    console.log("Modèle Issue synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle Issue:", error);
   }

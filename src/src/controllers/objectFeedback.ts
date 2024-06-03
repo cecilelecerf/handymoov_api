@@ -9,14 +9,14 @@ import ObjectFeedback from "../models/objectFeedbackModel";
 export const postAObjectFeedback = async (req: Request, res: Response) => {
   try {
     if (!req.body.label) {
-      return res.status(404).json({ message: "Label obligatoire" });
+      return res.status(404).json({ msg: "Label obligatoire" });
     }
     await ObjectFeedback.create({
       label: req.body.label,
     });
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -28,14 +28,12 @@ export const getAllObjectFeedbacks = async (req: Request, res: Response) => {
   try {
     const objectfeedbacks = await ObjectFeedback.findAll();
     if (!objectfeedbacks)
-      return res
-        .status(400)
-        .json({ message: "Aucun object de feedback trouvé" });
+      return res.status(400).json({ msg: "Aucun object de feedback trouvé" });
 
     res.status(200).json(objectfeedbacks);
   } catch (error) {
     res.status(500).json({
-      message: `Erreur lors du traitement des données.`,
+      msg: `Erreur lors du traitement des données.`,
     });
   }
 };
@@ -51,11 +49,11 @@ export const getAObjectFeedback = async (req: Request, res: Response) => {
     });
 
     if (!objectfeedback) {
-      return res.status(404).json({ message: "Object Feedback non trouvée." });
+      return res.status(404).json({ msg: "Object Feedback non trouvée." });
     }
     res.status(200).json(objectfeedback);
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -67,7 +65,7 @@ export const putAObjectFeedback = async (req: Request, res: Response) => {
   try {
     const objectfeedback = await ObjectFeedback.findByPk(req.params.label);
     if (!objectfeedback) {
-      return res.status(404).json({ message: "ObjectFeedback non trouvée." });
+      return res.status(404).json({ msg: "ObjectFeedback non trouvée." });
     }
     await ObjectFeedback.update(
       {
@@ -78,7 +76,7 @@ export const putAObjectFeedback = async (req: Request, res: Response) => {
     );
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -93,10 +91,10 @@ export const deleteAObjectFeedback = async (req: Request, res: Response) => {
     });
 
     if (!objectfeedback) {
-      return res.status(404).json({ message: "ObjectFeedback non trouvé." });
+      return res.status(404).json({ msg: "ObjectFeedback non trouvé." });
     }
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

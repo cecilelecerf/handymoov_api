@@ -8,7 +8,6 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
-import User from "./userModel";
 import ObjectFeedback from "./objectFeedbackModel";
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
@@ -23,7 +22,7 @@ class Feedback extends Model<
   declare modifiedAt: CreationOptional<Date>;
   declare object: string;
   declare description: string;
-  declare user_id: ForeignKey<User["id"]>;
+  declare user_id: number;
   declare read: boolean;
   declare hightPriority: boolean;
 }
@@ -47,12 +46,11 @@ Feedback.init(
       allowNull: false,
     },
     description: {
-      type: DataTypes.CHAR(400),
+      type: DataTypes.CHAR,
       allowNull: false,
     },
     user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      type: DataTypes.INTEGER.UNSIGNED,
     },
     read: {
       type: DataTypes.BOOLEAN,
@@ -72,14 +70,12 @@ Feedback.init(
 );
 
 // Liaison avec les autres modèles
-Feedback.belongsTo(User, { foreignKey: "user_id" });
 Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
 
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
     await Feedback.sync({ force: false });
-    console.log("Modèle User synchronisé avec la base de données.");
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);
   }

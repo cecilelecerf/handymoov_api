@@ -2,6 +2,7 @@ import { Response } from "express";
 import { Request } from "express";
 import Feedback from "../models/feedbackModel";
 import { UserRequest } from "../middlewares/jwtMiddlewares";
+import { body, validationResult } from "express-validator";
 
 /**********************************************************
             MÉTHODE POUR POSTER UN FEEDBACK
@@ -9,12 +10,28 @@ import { UserRequest } from "../middlewares/jwtMiddlewares";
 
 export const postAFeedback = async (req: UserRequest, res: Response) => {
   try {
-    if (!req.body.object) {
-      return res.status(404).json({ message: "Object obligatoire" });
-    }
-    if (!req.body.description) {
-      return res.status(404).json({ message: "Description obligatoire" });
-    }
+    // await Promise.all([
+    //   body("object")
+    //     .trim()
+    //     .notEmpty()
+    //     .escape()
+    //     .withMessage("L'objet est obligatoire")
+    //     .run(req),
+    //   body("description")
+    //     .trim()
+    //     .isLength({ min: 10, max: 300 })
+    //     .notEmpty()
+    //     .escape()
+    //     .withMessage("La description est obligatoire")
+    //     .run(req),
+    // ]);
+
+    // // Vérification des erreurs de validation
+    // const errors = validationResult(req);
+    // if (!errors.isEmpty()) {
+    //   return res.status(400).json({ errors: errors.array() });
+    // }
+
     await Feedback.create({
       object: req.body.object,
       description: req.body.description,
@@ -22,9 +39,9 @@ export const postAFeedback = async (req: UserRequest, res: Response) => {
       read: false,
       hightPriority: null,
     });
-    res.status(200).send();
+    res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -36,12 +53,12 @@ export const getAllFeedbacks = async (req: Request, res: Response) => {
   try {
     const feedbacks = await Feedback.findAll();
     if (!feedbacks)
-      return res.status(400).json({ message: "Aucun feedbacks trouvés" });
+      return res.status(400).json({ msg: "Aucun feedbacks trouvés" });
 
     res.status(200).json(feedbacks);
   } catch (error) {
     res.status(500).json({
-      message: `Erreur lors du traitement des données.`,
+      msg: `Erreur lors du traitement des données.`,
     });
   }
 };
@@ -57,11 +74,11 @@ export const getAFeedback = async (req: Request, res: Response) => {
     });
 
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback non trouvée." });
+      return res.status(404).json({ msg: "Feedback non trouvée." });
     }
     res.status(200).json(feedback);
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -73,7 +90,7 @@ export const putAFeedback = async (req: Request, res: Response) => {
   try {
     const feedback = await Feedback.findByPk(req.params.feedback_id);
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback non trouvée." });
+      return res.status(404).json({ msg: "Feedback non trouvée." });
     }
     await Feedback.update(
       {
@@ -91,7 +108,7 @@ export const putAFeedback = async (req: Request, res: Response) => {
     );
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -106,10 +123,10 @@ export const deleteAFeedback = async (req: Request, res: Response) => {
     });
 
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback non trouvé." });
+      return res.status(404).json({ msg: "Feedback non trouvé." });
     }
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: "Erreur lors du traitement des données." });
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

@@ -7,7 +7,6 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
-import User from "./userModel";
 
 import { DataTypes } from "sequelize";
 const db = new Sequelize("handymoov", "admin", "admin", {
@@ -27,7 +26,9 @@ class PersonalizedAddress extends Model<
   declare city?: string;
   declare street?: string;
   declare number?: string;
-  declare user_id: ForeignKey<User["id"]>;
+  declare lat?: number;
+  declare lng?: number;
+  declare user_id: number;
 }
 PersonalizedAddress.init(
   {
@@ -64,6 +65,14 @@ PersonalizedAddress.init(
       type: DataTypes.CHAR(10),
       allowNull: true,
     },
+    lat: {
+      type: DataTypes.DECIMAL(25, 20),
+      allowNull: true,
+    },
+    lng: {
+      type: DataTypes.DECIMAL(25, 20),
+      allowNull: true,
+    },
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,
     },
@@ -76,16 +85,10 @@ PersonalizedAddress.init(
   }
 );
 
-// Liaison avec les autres modèles
-PersonalizedAddress.belongsTo(User, { foreignKey: "user_id" });
-
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    console.log(await PersonalizedAddress.sync({ force: false }));
-    console.log(
-      "Modèle PersonalizedAddress synchronisé avec la base de données."
-    );
+    await PersonalizedAddress.sync({ force: false });
   } catch (error) {
     console.error(
       "Erreur lors de la synchronisation du modèle PersonalizedAddress:",

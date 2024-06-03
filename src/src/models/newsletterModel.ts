@@ -12,21 +12,21 @@ const db = new Sequelize("handymoov", "admin", "admin", {
   dialect: "mysql",
 });
 
-class ObjectFeedback extends Model<
-  InferAttributes<ObjectFeedback>,
-  InferCreationAttributes<ObjectFeedback>
+class Newsletter extends Model<
+  InferAttributes<Newsletter>,
+  InferCreationAttributes<Newsletter>
 > {
-  declare label: CreationOptional<string>;
+  declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
+  declare email: string;
 }
-
-ObjectFeedback.init(
+Newsletter.init(
   {
-    label: {
-      type: DataTypes.CHAR(50),
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
       primaryKey: true,
-      unique: true,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -36,9 +36,14 @@ ObjectFeedback.init(
       type: DataTypes.DATE,
       defaultValue: NOW,
     },
+    email: {
+      type: DataTypes.CHAR(100),
+      unique: true,
+      allowNull: false,
+    },
   },
   {
-    tableName: "objectFeedbacks",
+    tableName: "newsletters",
     timestamps: true,
     underscored: true,
     sequelize: db,
@@ -48,11 +53,13 @@ ObjectFeedback.init(
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await ObjectFeedback.sync({ force: false });
-    console.log("Modèle User synchronisé avec la base de données.");
+    await Newsletter.sync({ force: false });
   } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle User:", error);
+    console.error(
+      "Erreur lors de la synchronisation du modèle Newsletter:",
+      error
+    );
   }
 })();
 
-export default ObjectFeedback;
+export default Newsletter;

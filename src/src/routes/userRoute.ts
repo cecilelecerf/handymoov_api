@@ -22,6 +22,6 @@ router
   .put(putAUser)
   .get(getAUser);
 
-router.route("/all").get(getAllUser, isAdmin);
+router.route("/all").get(isAdmin, getAllUser);
 
 export default router;

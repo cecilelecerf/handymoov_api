@@ -1,27 +1,31 @@
 import {
   CreationOptional,
+  DATE,
   DataTypes,
+  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
   NOW,
   Sequelize,
 } from "sequelize";
+import Issue from "./issueModel";
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
   dialect: "mysql",
 });
-
-class Newsletter extends Model<
-  InferAttributes<Newsletter>,
-  InferCreationAttributes<Newsletter>
+class CurrentIssue extends Model<
+  InferAttributes<CurrentIssue>,
+  InferCreationAttributes<CurrentIssue>
 > {
   declare id: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
-  declare email: string;
+  declare user_id: number;
+  declare issue_id: number;
+  declare actif: boolean;
 }
-Newsletter.init(
+CurrentIssue.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -36,31 +40,39 @@ Newsletter.init(
       type: DataTypes.DATE,
       defaultValue: NOW,
     },
-    email: {
-      type: DataTypes.CHAR(100),
-      unique: true,
+    user_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
+    },
+    issue_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
+    actif: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   {
-    tableName: "newsletters",
+    tableName: "currentIssues",
     timestamps: true,
     underscored: true,
     sequelize: db,
   }
 );
 
+CurrentIssue.belongsTo(Issue, { foreignKey: "issue_id" });
+
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    await Newsletter.sync({ force: false });
-    console.log("Modèle Newsletter synchronisé avec la base de données.");
+    await CurrentIssue.sync({ force: false });
   } catch (error) {
     console.error(
-      "Erreur lors de la synchronisation du modèle Newsletter:",
+      "Erreur lors de la synchronisation du modèle CurrentIssue:",
       error
     );
   }
 })();
 
-export default Newsletter;
+export default CurrentIssue;

@@ -7,7 +7,13 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
+
 import bcrypt from "bcrypt";
+import PersonalizedAddress from "./personalizedAddress";
+import Feedback from "./feedbackModel";
+import Issue from "./issueModel";
+import CurrentIssue from "./currentIssue";
+
 const db = new Sequelize("handymoov", "admin", "admin", {
   host: "db",
   dialect: "mysql",
@@ -39,7 +45,7 @@ User.init(
       defaultValue: NOW,
     },
     email: {
-      type: DataTypes.CHAR(100),
+      type: DataTypes.CHAR(70),
       unique: true,
       allowNull: false,
     },
@@ -73,7 +79,15 @@ User.init(
     sequelize: db,
   }
 );
-
+// Liaison avec les autres modèles
+PersonalizedAddress.belongsTo(User, { as: "User", foreignKey: "user_id" });
+User.hasMany(PersonalizedAddress, {
+  as: "PersonalizedAddress",
+  onDelete: "cascade",
+});
+Feedback.belongsTo(User, { foreignKey: "user_id" });
+Issue.belongsTo(User, { foreignKey: "user_id" });
+CurrentIssue.belongsTo(User, { foreignKey: "user_id" });
 // Hash avant de sauvegarder en base de données
 User.addHook("beforeSave", async (user: User) => {
   try {
@@ -89,8 +103,7 @@ User.addHook("beforeSave", async (user: User) => {
 // Synchronisation du modèle avec la base de données
 (async () => {
   try {
-    console.log(await User.sync({ force: false }));
-    console.log("Modèle User synchronisé avec la base de données.");
+    await User.sync({ force: false });
   } catch (error) {
     console.error("Erreur lors de la synchronisation du modèle User:", error);
   }

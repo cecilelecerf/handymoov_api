@@ -26,6 +26,8 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare email: string;
   declare firstname: string;
   declare lastname: string;
+  declare birthday: Date;
+  declare wheelchair: boolean;
   declare password: string;
   declare role: string;
 }
@@ -56,6 +58,15 @@ User.init(
     },
     lastname: {
       type: DataTypes.CHAR(50),
+      allowNull: false,
+    },
+    birthday: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    wheelchair: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
       allowNull: false,
     },
     password: {

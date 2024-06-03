@@ -9,7 +9,6 @@ import Issue from "../models/issueModel";
 **********************************************************/
 
 export const postACurrentIssue = async (req: UserRequest, res: Response) => {
-  console.log(req.body);
   if (req.body.actif === undefined)
     return res.status(404).json({ msg: "Actif obligatoire" });
   try {

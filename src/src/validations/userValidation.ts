@@ -83,6 +83,48 @@ export const validateLastname = ({
   }
 };
 
+export const validateBirthday = ({
+  birthday,
+  required,
+}: {
+  birthday: string;
+  required?: boolean;
+}) => {
+  if (!birthday && required) {
+    throw {
+      param: ["birthday"],
+      msg: "Votre date de naissance est obligatoire.",
+    };
+  }
+  const birthDate = new Date(birthday);
+  if (isNaN(birthDate.getTime())) {
+    throw {
+      param: ["birthday"],
+      msg: "Le format de la date de naissance est invalide.",
+    };
+  }
+  const isOver18 = () => {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age >= 18;
+  };
+
+  if (!isOver18()) {
+    throw {
+      param: ["birthday"],
+      msg: "Vous devez avoir plus de 18 ans.",
+    };
+  }
+};
+
 export const validatePassword = ({
   password,
   required = true,

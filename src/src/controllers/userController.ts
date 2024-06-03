@@ -11,6 +11,7 @@ import User from "../models/userModel";
 import bcrypt from "bcrypt";
 import {
   validPassword,
+  validateBirthday,
   validateConfirmEmail,
   validateConfirmPassword,
   validateEmail,
@@ -22,18 +23,25 @@ import {
 
 export const registerAUser = async (req: Request, res: Response) => {
   try {
-    const { email, firstname, lastname, password, confirmPassword, role } =
-      req.body;
+    const {
+      email,
+      firstname,
+      lastname,
+      password,
+      confirmPassword,
+      role,
+      birthday,
+    } = req.body;
 
     try {
       await validateEmail({ email });
-      validateFirstname({ firstname });
-      validateLastname({ lastname });
+      validateFirstname({ firstname, required: true });
+      validateLastname({ lastname, required: true });
       validatePassword({ password });
+      validateBirthday({ birthday, required: true });
       validateConfirmPassword({ password, confirmPassword });
       validateRole(role);
     } catch (validationError) {
-      console.log(validationError);
       if (validationError.status) {
         return res.status(validationError.status).json({
           msg: validationError.msg,
@@ -52,6 +60,7 @@ export const registerAUser = async (req: Request, res: Response) => {
       user = await User.create({
         firstname,
         lastname,
+        birthday: new Date(birthday),
         password,
         email,
         role: "admin",
@@ -60,6 +69,7 @@ export const registerAUser = async (req: Request, res: Response) => {
       user = await User.create({
         firstname,
         lastname,
+        birthday: new Date(birthday),
         password,
         email,
         role: "user",
@@ -72,7 +82,7 @@ export const registerAUser = async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({
       msg: "Erreur lors du traitement des données.",
     });
@@ -179,7 +189,6 @@ export const putAUser = async (req: UserRequest, res: Response) => {
         validateLastname({ lastname, required: false });
       }
       if (password || lastPassword || confirmPassword) {
-        console.log(password);
         validatePassword({ password });
         validateConfirmPassword({
           password,
@@ -193,7 +202,6 @@ export const putAUser = async (req: UserRequest, res: Response) => {
         });
       }
     } catch (validationError) {
-      console.error(validationError);
       if (validationError.status)
         return res
           .status(validationError.status)

@@ -9,14 +9,11 @@ import Issue from "../models/issueModel";
 
 export const postAIssue = async (req: UserRequest, res: Response) => {
   try {
-    console.log(req.body);
     if (!req.body.label) {
-
       return res.status(404).json({ message: "Label obligatoire" });
     }
     if (!req.body.gpsCoordinateLat || !req.body.gpsCoordinateLng) {
       return res.status(404).json({ message: "Coordonées obligatoire" });
-
     }
     await Issue.create({
       label: req.body.label,

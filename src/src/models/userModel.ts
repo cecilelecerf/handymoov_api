@@ -13,7 +13,9 @@ import PersonalizedAddress from "./personalizedAddress";
 import Feedback from "./feedbackModel";
 import Issue from "./issueModel";
 import CurrentIssue from "./currentIssue";
-import ObjectFeedback from "./objectFeedbackModel";
+import ObjectFeedback, {
+  initializeDefaultObjectFeedbacks,
+} from "./objectFeedbackModel";
 import Newsletter from "./newsletterModel";
 
 const db = new Sequelize("handymoov", "admin", "admin", {
@@ -128,6 +130,7 @@ User.addHook("beforeSave", async (user: User) => {
     await ObjectFeedback.sync({ force: false });
     await Feedback.sync({ force: false });
     await Newsletter.sync({ force: false });
+    await initializeDefaultObjectFeedbacks(); // Appelez la fonction d'initialisation après la connexion à la base de données
   } catch (error) {
     console.error("Erreur lors de la synchronisation des models", error);
   }

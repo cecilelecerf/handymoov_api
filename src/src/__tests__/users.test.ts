@@ -10,6 +10,7 @@ interface UserProps {
   lastname: string;
   password: string;
   birthday: string;
+  wheelchair: boolean;
 }
 
 interface RegisterUserProps {
@@ -19,6 +20,8 @@ interface RegisterUserProps {
   password: string;
   birthday: string;
   confirmPassword: string;
+  wheelchair: boolean;
+  cgu: boolean;
 }
 
 let user: UserProps = {
@@ -27,6 +30,7 @@ let user: UserProps = {
   lastname: "Dezezdzezoe",
   password: "Aa1&azaP",
   birthday: "2001-07-22",
+  wheelchair: true,
 };
 
 const registerUser: RegisterUserProps = {
@@ -36,6 +40,8 @@ const registerUser: RegisterUserProps = {
   birthday: user["birthday"],
   password: user["password"],
   confirmPassword: user["password"],
+  wheelchair: user["wheelchair"],
+  cgu: true,
 };
 
 interface LoginUserProps {
@@ -55,6 +61,8 @@ const registerAdminUser: RegisterUserProps = {
   password: user["password"],
   confirmPassword: user["password"],
   birthday: user["birthday"],
+  wheelchair: false,
+  cgu: true,
 };
 
 const app = createServer();
@@ -388,6 +396,16 @@ describe("User", () => {
         });
       });
     });
+    it("should return 400 if cgu doesn't accept", async () => {
+      const { statusCode, body } = await supertest(app)
+        .post("/users/register")
+        .send({ ...registerUser, cgu: false });
+      expect(statusCode).toBe(400);
+      expect(body).toEqual({
+        param: ["cgu"],
+        msg: "Les conditions générales d'utilisations sont obligatoires.",
+      });
+    });
   });
 
   describe("POST /login", () => {
@@ -445,7 +463,7 @@ describe("User", () => {
         password: expect.any(String),
         role: "user",
         updatedAt: expect.any(String),
-        wheelchair: false,
+        wheelchair: true,
       });
     });
   });
@@ -555,6 +573,8 @@ describe("User", () => {
           lastname: "Useeer",
           confirmPassword: "NewPass123EXIST!",
           birthday: "2000-07-22",
+          wheelchair: false,
+          cgu: true,
         };
         await supertest(app).post("/users/register").send(newUser);
 

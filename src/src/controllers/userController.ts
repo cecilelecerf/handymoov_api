@@ -12,6 +12,7 @@ import bcrypt from "bcrypt";
 import {
   validPassword,
   validateBirthday,
+  validateCGU,
   validateConfirmEmail,
   validateConfirmPassword,
   validateEmail,
@@ -31,6 +32,8 @@ export const registerAUser = async (req: Request, res: Response) => {
       confirmPassword,
       role,
       birthday,
+      wheelchair,
+      cgu,
     } = req.body;
 
     try {
@@ -41,6 +44,7 @@ export const registerAUser = async (req: Request, res: Response) => {
       validateBirthday({ birthday, required: true });
       validateConfirmPassword({ password, confirmPassword });
       validateRole(role);
+      validateCGU({ cgu });
     } catch (validationError) {
       if (validationError.status) {
         return res.status(validationError.status).json({
@@ -64,6 +68,7 @@ export const registerAUser = async (req: Request, res: Response) => {
         password,
         email,
         role: "admin",
+        wheelchair,
       });
     } else {
       user = await User.create({
@@ -73,6 +78,7 @@ export const registerAUser = async (req: Request, res: Response) => {
         password,
         email,
         role: "user",
+        wheelchair,
       });
     }
 
@@ -155,7 +161,7 @@ export const getAUser = async (req: UserRequest, res: Response) => {
             MÉTHODE POUR MODIFIER UN UTILISATEUR
 **********************************************************/
 
-export const putAUser = async (req: UserRequest, res: Response) => {
+export const patchAUser = async (req: UserRequest, res: Response) => {
   try {
     let user = await User.findByPk(req.user.id);
     if (!user) {
@@ -170,6 +176,7 @@ export const putAUser = async (req: UserRequest, res: Response) => {
       password,
       lastPassword,
       confirmPassword,
+      birthday,
     } = req.body;
 
     try {
@@ -187,6 +194,9 @@ export const putAUser = async (req: UserRequest, res: Response) => {
       }
       if (lastname) {
         validateLastname({ lastname, required: false });
+      }
+      if (birthday) {
+        validateBirthday({ birthday, required: false });
       }
       if (password || lastPassword || confirmPassword) {
         validatePassword({ password });
@@ -208,16 +218,46 @@ export const putAUser = async (req: UserRequest, res: Response) => {
           .json({ msg: validationError.msg, param: validationError.param });
       else return res.status(400).json(validationError);
     }
-
+    const UserRequest = await User.findOne({ where: { id: user.id } });
     await user.update({
       email: req.body.email ? req.body.email : user.email,
       firstname: req.body.firstname ? req.body.firstname : user.firstname,
       lastname: req.body.lastname ? req.body.lastname : user.lastname,
       password: req.body.password
         ? await bcrypt.hash(req.body.password, 10)
-        : user.password,
+        : UserRequest.password,
       modifiedAt: new Date(Date.now()),
+      birthday: req.body.birthday ? req.body.birthday : UserRequest.birthday,
+      profilePicture: req.body.picture
+        ? req.body.picture
+        : UserRequest.profilePicture,
     });
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+  }
+};
+
+/**********************************************************
+            MÉTHODE POUR MODIFIER UNE PHOTO DE PROFIL
+**********************************************************/
+
+export const putAProfilePictureUser = async (
+  req: UserRequest,
+  res: Response
+) => {
+  try {
+    let user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    }
+
+    // Vérifier si une photo de profil est fournie dans la requête
+    const profilePicture = req.file.path;
+
+    // Mettre à jour la photo de profil de l'utilisateur
+    await user.update({ profilePicture });
 
     res.status(204).send();
   } catch (error) {
@@ -254,6 +294,129 @@ export const getAllUser = async (req: UserRequest, res: Response) => {
   try {
     const users = await User.findAll();
     res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+  }
+};
+
+// TODO : test à faire
+/**********************************************************
+            MÉTHODE POUR MODIFIER SON MOT DE PASSE
+**********************************************************/
+
+export const patchAUserPassword = async (req: UserRequest, res: Response) => {
+  try {
+    let user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    }
+    const { password, lastPassword, confirmPassword } = req.body;
+
+    try {
+      validatePassword({ password });
+      validateConfirmPassword({
+        password,
+        confirmPassword,
+        lastPassword,
+        userPassword: user.password,
+      });
+      await validPassword({
+        reqPassword: lastPassword,
+        userPassword: user.password,
+      });
+    } catch (validationError) {
+      if (validationError.status)
+        return res
+          .status(validationError.status)
+          .json({ msg: validationError.msg, param: validationError.param });
+      else return res.status(400).json(validationError);
+    }
+    await user.update({
+      password: await bcrypt.hash(req.body.password, 10),
+      modifiedAt: new Date(Date.now()),
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+  }
+};
+
+/**********************************************************
+            MÉTHODE POUR MODIFIER SON EMAIL
+**********************************************************/
+
+export const patchAUserEmail = async (req: UserRequest, res: Response) => {
+  try {
+    let user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    }
+    const { email, lastEmail, confirmEmail } = req.body;
+
+    try {
+      validateConfirmEmail({
+        email,
+        confirmEmail,
+        lastEmail,
+        userEmail: req.user.email,
+      });
+      await validateEmail({ email });
+    } catch (validationError) {
+      if (validationError.status)
+        return res
+          .status(validationError.status)
+          .json({ msg: validationError.msg, param: validationError.param });
+      else return res.status(400).json(validationError);
+    }
+    await user.update({
+      email: email,
+      modifiedAt: new Date(Date.now()),
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+  }
+};
+
+/**********************************************************
+            MÉTHODE POUR MODIFIER LE PROFIL D'UN UTILISATEUR
+**********************************************************/
+
+export const patchAUserProfil = async (req: UserRequest, res: Response) => {
+  try {
+    let user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    }
+    const { firstname, lastname, birthday } = req.body;
+
+    try {
+      if (firstname) {
+        validateFirstname({ firstname, required: false });
+      }
+      if (lastname) {
+        validateLastname({ lastname, required: false });
+      }
+      if (birthday) {
+        validateBirthday({ birthday, required: false });
+      }
+    } catch (validationError) {
+      if (validationError.status)
+        return res
+          .status(validationError.status)
+          .json({ msg: validationError.msg, param: validationError.param });
+      else return res.status(400).json(validationError);
+    }
+    await user.update({
+      firstname: firstname,
+      lastname: lastname,
+      modifiedAt: new Date(Date.now()),
+      birthday: birthday,
+    });
+
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }

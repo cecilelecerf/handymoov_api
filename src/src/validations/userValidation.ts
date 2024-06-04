@@ -273,3 +273,11 @@ export const validPassword = async ({
     };
   }
 };
+
+export const validateCGU = ({ cgu }: { cgu: boolean }) => {
+  if (!cgu)
+    throw {
+      param: ["cgu"],
+      msg: "Les conditions générales d'utilisations sont obligatoires.",
+    };
+};

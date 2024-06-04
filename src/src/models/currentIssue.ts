@@ -63,16 +63,4 @@ CurrentIssue.init(
 
 CurrentIssue.belongsTo(Issue, { foreignKey: "issue_id" });
 
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await CurrentIssue.sync({ force: false });
-  } catch (error) {
-    console.error(
-      "Erreur lors de la synchronisation du modèle CurrentIssue:",
-      error
-    );
-  }
-})();
-
 export default CurrentIssue;

@@ -85,16 +85,4 @@ PersonalizedAddress.init(
   }
 );
 
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await PersonalizedAddress.sync({ force: false });
-  } catch (error) {
-    console.error(
-      "Erreur lors de la synchronisation du modèle PersonalizedAddress:",
-      error
-    );
-  }
-})();
-
 export default PersonalizedAddress;

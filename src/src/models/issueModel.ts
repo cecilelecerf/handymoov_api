@@ -68,13 +68,4 @@ Issue.init(
   }
 );
 
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await Issue.sync({ force: false });
-  } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle Issue:", error);
-  }
-})();
-
 export default Issue;

@@ -45,13 +45,4 @@ ObjectFeedback.init(
   }
 );
 
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await ObjectFeedback.sync({ force: false });
-  } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle User:", error);
-  }
-})();
-
 export default ObjectFeedback;

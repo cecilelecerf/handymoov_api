@@ -12,7 +12,6 @@ export const postAFeedback = async (req: UserRequest, res: Response) => {
   try {
     const { object, title, description } = req.body;
     // TODO : vérification à effectué
-    console.log(object, title, description);
     await Feedback.create({
       object: object,
       title: title,

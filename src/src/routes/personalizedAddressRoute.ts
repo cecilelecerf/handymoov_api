@@ -10,12 +10,12 @@ import {
 import { verifyToken } from "../middlewares/jwtMiddlewares";
 
 router
-  .route("/:personalizedAddress_id")
+  .route("/")
   .all(verifyToken)
-  .get(getAPersonalizedAddress)
+  .post(getAPersonalizedAddress)
   .patch(putAPersonalizedAddress)
   .put(deleteAPersonalizedAddress);
 
-router.route("/").all(verifyToken).get(getAllPersonalizedAddress);
+router.route("/all").all(verifyToken).get(getAllPersonalizedAddress);
 
 export default router;

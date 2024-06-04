@@ -9,6 +9,8 @@ interface UserProps {
   firstname: string;
   lastname: string;
   password: string;
+  birthday: string;
+  wheelchair: boolean;
 }
 
 interface RegisterUserProps {
@@ -16,7 +18,10 @@ interface RegisterUserProps {
   firstname: string;
   lastname: string;
   password: string;
+  birthday: string;
   confirmPassword: string;
+  wheelchair: boolean;
+  cgu: boolean;
 }
 
 let user: UserProps = {
@@ -24,14 +29,19 @@ let user: UserProps = {
   firstname: "Jedzeddeoahn",
   lastname: "Dezezdzezoe",
   password: "Aa1&azaP",
+  birthday: "2001-07-22",
+  wheelchair: true,
 };
 
 const registerUser: RegisterUserProps = {
   email: user["email"],
   firstname: user["firstname"],
   lastname: user["lastname"],
+  birthday: user["birthday"],
   password: user["password"],
   confirmPassword: user["password"],
+  wheelchair: user["wheelchair"],
+  cgu: true,
 };
 
 interface LoginUserProps {
@@ -50,6 +60,9 @@ const registerAdminUser: RegisterUserProps = {
   lastname: user["lastname"],
   password: user["password"],
   confirmPassword: user["password"],
+  birthday: user["birthday"],
+  wheelchair: false,
+  cgu: true,
 };
 
 const app = createServer();
@@ -103,6 +116,18 @@ describe("User", () => {
         expect(body).toEqual({
           param: ["lastname"],
           msg: "Votre nom est obligatoire.",
+        });
+      });
+      it("birthday is missing", async () => {
+        const { birthday, ...inputUser } = registerUser;
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send(inputUser);
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["birthday"],
+          msg: "Votre date de naissance est obligatoire.",
         });
       });
     });
@@ -342,7 +367,44 @@ describe("User", () => {
           msg: "Le mot de passe doit contenir au moins un caractère spécial.",
         });
       });
+    });
 
+    describe("should return 400 if email not valid", () => {
+      it("if not a valid date", async () => {
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send({ ...registerUser, birthday: "invalid-email" });
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["birthday"],
+          msg: "Le format de la date de naissance est invalide.",
+        });
+      });
+      it("if the user is under 18", async () => {
+        const under18Birthday = new Date();
+        under18Birthday.setFullYear(under18Birthday.getFullYear() - 17);
+        under18Birthday.setDate(under18Birthday.getDate() + 1);
+        const { statusCode, body } = await supertest(app)
+          .post("/users/register")
+          .send({ ...registerUser, birthday: under18Birthday.toISOString() });
+
+        expect(statusCode).toBe(400);
+        expect(body).toEqual({
+          param: ["birthday"],
+          msg: "Vous devez avoir plus de 18 ans.",
+        });
+      });
+    });
+    it("should return 400 if cgu doesn't accept", async () => {
+      const { statusCode, body } = await supertest(app)
+        .post("/users/register")
+        .send({ ...registerUser, cgu: false });
+      expect(statusCode).toBe(400);
+      expect(body).toEqual({
+        param: ["cgu"],
+        msg: "Les conditions générales d'utilisations sont obligatoires.",
+      });
     });
   });
 
@@ -391,6 +453,7 @@ describe("User", () => {
         .set("authorization", `${res.body.token}`);
       expect(statusCode).toBe(200);
       expect(body).toEqual({
+        birthday: "2001-07-22T00:00:00.000Z",
         createdAt: expect.any(String),
         email: registerUser.email,
         firstname: registerUser.firstname,
@@ -400,6 +463,7 @@ describe("User", () => {
         password: expect.any(String),
         role: "user",
         updatedAt: expect.any(String),
+        wheelchair: true,
       });
     });
   });
@@ -508,6 +572,9 @@ describe("User", () => {
           firstname: "Neeew",
           lastname: "Useeer",
           confirmPassword: "NewPass123EXIST!",
+          birthday: "2000-07-22",
+          wheelchair: false,
+          cgu: true,
         };
         await supertest(app).post("/users/register").send(newUser);
 
@@ -704,7 +771,7 @@ describe("User", () => {
 
       expect(deleteRes.status).toBe(403);
       expect(deleteRes.body).toEqual({
-        message: "Accès interdit: token manquant",
+        msg: "Accès interdit: token manquant",
       });
     });
   });
@@ -736,7 +803,7 @@ describe("User", () => {
       // Vérifier que le statut de la réponse est 403 (interdit)
       expect(statusCode).toBe(403);
       expect(body).toEqual({
-        message: "Accès interdit: rôle administrateur requis",
+        msg: "Accès interdit: rôle administrateur requis",
       });
     });
   });

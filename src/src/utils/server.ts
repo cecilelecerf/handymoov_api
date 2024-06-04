@@ -7,14 +7,28 @@ import newsletterRoute from "../routes/newsletterRoute";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger/swagger_config";
 import journeyRoute from "../routes/journeyRoute";
+import path from "path";
+
+import fs from "fs";
+
+const createUploadsDirectory = () => {
+  const directory = "uploads";
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory);
+  }
+};
 
 function createServer() {
   const app = express();
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
-
+  const uploadsDirectory = path.resolve("/app/uploads");
+  console.log(uploadsDirectory);
+  app.use("/uploads", express.static(uploadsDirectory));
+  // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
   // Configuration de Swagger
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  createUploadsDirectory();
   // Configuration des routes
   app.use("/users", userRoute);
   app.use("/personalizedAddress", personalizedAddressRoute);

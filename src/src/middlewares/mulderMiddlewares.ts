@@ -23,7 +23,6 @@ const fileFilter = function (
   file: Express.Multer.File,
   cb: (error: Error | null, acceptFile: boolean) => void
 ) {
-  console.log(file);
   if (file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
     cb(null, true); // Accepter le fichier
   } else {

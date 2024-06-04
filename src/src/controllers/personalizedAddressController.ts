@@ -33,10 +33,11 @@ export const getAllPersonalizedAddress = async (
 
 export const getAPersonalizedAddress = async (req: Request, res: Response) => {
   try {
-    const personalizedAddress = await PersonalizedAddress.findOne({
-      where: { id: req.params.personalizedAddress_id },
-    });
-
+    const personalizedAddress = await PersonalizedAddress.findByPk(
+      req.body.personalizedAddress_id
+    );
+    console.log(req.body.personalizedAddress_id);
+    console.log(personalizedAddress);
     if (!personalizedAddress) {
       return res.status(404).json({ msg: "Addresse non trouvée." });
     }
@@ -50,25 +51,27 @@ export const getAPersonalizedAddress = async (req: Request, res: Response) => {
             MÉTHODE POUR MODIFIER UNE ADRESSE PERSONNALISÉE
 **********************************************************/
 
+// TODO : verif si l'adresse correspond bien à l'user
 export const putAPersonalizedAddress = async (req: Request, res: Response) => {
   try {
-    const personalizedAddress = await PersonalizedAddress.findByPk(
-      req.params.personalizedAddress_id
-    );
+    const { id, country, city, street, number, lat, lng } = req.body;
+    const personalizedAddress = await PersonalizedAddress.findByPk(id);
     if (!personalizedAddress) {
       return res.status(404).json({ msg: "Adresse non trouvée." });
     }
+    console.log(id, country, city, street, number, lat, lng);
+    console.log(personalizedAddress);
     await PersonalizedAddress.update(
       {
-        country: req.body.country
-          ? req.body.country
-          : personalizedAddress.country,
-        city: req.body.city ? req.body.city : personalizedAddress.city,
-        street: req.body.street ? req.body.street : personalizedAddress.street,
-        number: req.body.number ? req.body.number : personalizedAddress.number,
+        country: req.body.country ? country : personalizedAddress.country,
+        city: city ? city : personalizedAddress.city,
+        street: street ? street : personalizedAddress.street,
+        number: number ? number : personalizedAddress.number,
+        lat: lat,
+        lng: lng,
         modifiedAt: new Date(Date.now()),
       },
-      { where: { id: req.params.personalizedAddress_id } }
+      { where: { id: id } }
     );
     res.status(200).send();
   } catch (error) {
@@ -86,7 +89,7 @@ export const deleteAPersonalizedAddress = async (
 ) => {
   try {
     const personalizedAddress = await PersonalizedAddress.findByPk(
-      req.params.personalizedAddress_id
+      req.body.personalizedAddress_id
     );
     if (
       personalizedAddress.label === "Maison" ||

@@ -23,7 +23,6 @@ function createServer() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   const uploadsDirectory = path.resolve("/app/uploads");
-  console.log(uploadsDirectory);
   app.use("/uploads", express.static(uploadsDirectory));
   // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
   // Configuration de Swagger

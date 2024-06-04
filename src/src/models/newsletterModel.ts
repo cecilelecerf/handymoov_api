@@ -50,16 +50,4 @@ Newsletter.init(
   }
 );
 
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await Newsletter.sync({ force: false });
-  } catch (error) {
-    console.error(
-      "Erreur lors de la synchronisation du modèle Newsletter:",
-      error
-    );
-  }
-})();
-
 export default Newsletter;

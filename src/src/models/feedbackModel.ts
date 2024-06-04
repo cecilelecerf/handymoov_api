@@ -21,6 +21,7 @@ class Feedback extends Model<
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare object: string;
+  declare title: string;
   declare description: string;
   declare user_id: number;
   declare read: boolean;
@@ -42,6 +43,10 @@ Feedback.init(
       defaultValue: NOW,
     },
     object: {
+      type: DataTypes.CHAR(100),
+      allowNull: false,
+    },
+    title: {
       type: DataTypes.CHAR(100),
       allowNull: false,
     },
@@ -71,14 +76,5 @@ Feedback.init(
 
 // Liaison avec les autres modèles
 Feedback.belongsTo(ObjectFeedback, { foreignKey: "object" });
-
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await Feedback.sync({ force: false });
-  } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle User:", error);
-  }
-})();
 
 export default Feedback;

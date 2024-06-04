@@ -19,22 +19,20 @@ import {
 
 router.route("/").all(verifyToken).get(getAllFeedbacks).post(postAFeedback);
 router
-  .route("/:feedback_id")
+  .route("/single/:feedback_id")
   .all(isAdmin)
   .get(getAFeedback)
   .patch(putAFeedback)
   .delete(deleteAFeedback);
 router
   .route("/object")
-  .all(isAdmin)
-  .get(getAllObjectFeedbacks)
-  .post(postAObjectFeedback);
+  .get(verifyToken, getAllObjectFeedbacks)
+  .post(isAdmin, postAObjectFeedback);
 
 router
   .route("/object/:label")
-  .all(isAdmin)
   .get(getAObjectFeedback)
-  .put(putAObjectFeedback)
-  .delete(deleteAObjectFeedback);
+  .put(isAdmin, putAObjectFeedback)
+  .delete(isAdmin, deleteAObjectFeedback);
 
 export default router;

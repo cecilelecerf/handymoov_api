@@ -10,37 +10,20 @@ import { body, validationResult } from "express-validator";
 
 export const postAFeedback = async (req: UserRequest, res: Response) => {
   try {
-    // await Promise.all([
-    //   body("object")
-    //     .trim()
-    //     .notEmpty()
-    //     .escape()
-    //     .withMessage("L'objet est obligatoire")
-    //     .run(req),
-    //   body("description")
-    //     .trim()
-    //     .isLength({ min: 10, max: 300 })
-    //     .notEmpty()
-    //     .escape()
-    //     .withMessage("La description est obligatoire")
-    //     .run(req),
-    // ]);
-
-    // // Vérification des erreurs de validation
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //   return res.status(400).json({ errors: errors.array() });
-    // }
-
+    const { object, title, description } = req.body;
+    // TODO : vérification à effectué
+    console.log(object, title, description);
     await Feedback.create({
-      object: req.body.object,
-      description: req.body.description,
+      object: object,
+      title: title,
+      description: description,
       user_id: req.user.id,
       read: false,
-      hightPriority: null,
+      hightPriority: false,
     });
     res.status(204).send();
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

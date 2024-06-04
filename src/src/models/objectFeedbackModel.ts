@@ -19,6 +19,7 @@ class ObjectFeedback extends Model<
   declare label: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
+  declare icon: string;
 }
 
 ObjectFeedback.init(
@@ -36,6 +37,10 @@ ObjectFeedback.init(
       type: DataTypes.DATE,
       defaultValue: NOW,
     },
+    icon: {
+      type: DataTypes.CHAR(50),
+      allowNull: false,
+    },
   },
   {
     tableName: "objectFeedbacks",
@@ -45,13 +50,32 @@ ObjectFeedback.init(
   }
 );
 
-// Synchronisation du modèle avec la base de données
-(async () => {
-  try {
-    await ObjectFeedback.sync({ force: false });
-  } catch (error) {
-    console.error("Erreur lors de la synchronisation du modèle User:", error);
+const defaultObjectFeedbacks = [
+  { label: "Typographies", icon: "car-outline" },
+  { label: "Boutons", icon: "car-outline" },
+  { label: "Problèmes technique", icon: "car-outline" },
+  { label: "Navigation", icon: "car-outline" },
+  { label: "Sons et images", icon: "car-outline" },
+  { label: "Accessibilité", icon: "car-outline" },
+  { label: "Performance", icon: "car-outline" },
+  { label: "Compatibilité", icon: "car-outline" },
+  { label: "Sécurité", icon: "car-outline" },
+];
+
+export const initializeDefaultObjectFeedbacks = async () => {
+  for (const object of defaultObjectFeedbacks) {
+    const [created] = await ObjectFeedback.findOrCreate({
+      where: { label: object.label },
+      defaults: {
+        label: object.label,
+        icon: object.icon,
+      },
+    });
+
+    if (created) {
+      console.log(`Created default object: ${object.label}`);
+    }
   }
-})();
+};
 
 export default ObjectFeedback;

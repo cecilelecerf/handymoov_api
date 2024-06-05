@@ -26,13 +26,14 @@ export const getANewsletter = async (req: Request, res: Response) => {
 
 export const postANewsletter = async (req: Request, res: Response) => {
   try {
+    console.log(req.body.email);
     if (!req.body.email) {
       return res.status(404).json({ msg: "Email obligatoire" });
     }
     await Newsletter.create({
       email: req.body.email,
     });
-    res.status(200).send();
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }

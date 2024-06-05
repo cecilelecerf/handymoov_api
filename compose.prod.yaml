@@ -14,10 +14,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - routing_routing
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.handymoov.rule=Host(`api.handymoov.fr`)"
+      - "traefik.http.routers.handymoov.entrypoints=websecure"
+      - "traefik.http.routers.handymoov.tls.certresolver=myresolver"
 
   db:
     image: mariadb:lts
     restart: always
+    networks:
+      - routing_routing
     healthcheck:
       interval: 20s
       retries: 3
@@ -37,17 +46,7 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: yes
     volumes:
       - ./db:/var/lib/mysql
-      #- ./data:/docker-entrypoint-initdb.d/init.sql 
-
-  pma:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - '8081:80'
-    restart: always
-    depends_on:
-      - db
-    environment:
-      PMA_HOST: db
-      PMA_USER: ${DB_USER}
-      PMA_PASSWORD: ${DB_PASSWORD}
-      PMA_ARBITRARY: 1
+      
+networks:
+  routing_routing:
+    external: true

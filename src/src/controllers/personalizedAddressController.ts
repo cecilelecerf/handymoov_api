@@ -50,7 +50,10 @@ export const getAPersonalizedAddress = async (req: Request, res: Response) => {
 **********************************************************/
 
 // TODO : verif si l'adresse correspond bien à l'user
-export const putAPersonalizedAddress = async (req: Request, res: Response) => {
+export const patchAPersonalizedAddress = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { id, country, city, street, number, lat, lng } = req.body;
     const personalizedAddress = await PersonalizedAddress.findByPk(id);

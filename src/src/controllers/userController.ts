@@ -322,7 +322,6 @@ export const getAllUser = async (req: UserRequest, res: Response) => {
   }
 };
 
-// TODO : test à faire
 /**********************************************************
             MÉTHODE POUR MODIFIER SON MOT DE PASSE
 **********************************************************/

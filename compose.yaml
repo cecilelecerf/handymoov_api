@@ -45,9 +45,9 @@ services:
       - '8081:80'
     restart: always
     depends_on:
-      - db
+      - h-database
     environment:
-      PMA_HOST: db
+      PMA_HOST: ${DB_HOST}
       PMA_USER: ${DB_USER}
       PMA_PASSWORD: ${DB_PASSWORD}
       PMA_ARBITRARY: 1

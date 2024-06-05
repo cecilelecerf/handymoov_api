@@ -3,7 +3,7 @@ import { Sequelize } from "sequelize";
 async function connect() {
   // Configuration de la base de données
   const db = new Sequelize("handymoov", "admin", "admin", {
-    host: "database",
+    host: "h-database",
     dialect: "mysql",
   });
 

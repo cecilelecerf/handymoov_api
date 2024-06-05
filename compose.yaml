@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  node:
+  h-node:
     image: node:lts-slim
     working_dir: /app
     env_file:
@@ -12,10 +12,10 @@ services:
     volumes:
       - './src:/app'
     depends_on:
-      db:
+      h-database:
         condition: service_healthy
 
-  db:
+  h-database:
     image: mariadb:lts
     restart: always
     healthcheck:

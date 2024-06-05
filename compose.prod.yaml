@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  node:
+  h-node:
     image: node:lts-slim
     working_dir: /app
     env_file:
@@ -12,7 +12,7 @@ services:
     volumes:
       - './src:/app'
     depends_on:
-      database:
+      h-database:
         condition: service_healthy
     networks:
       - routing_routing
@@ -22,7 +22,7 @@ services:
       - "traefik.http.routers.handymoov.entrypoints=websecure"
       - "traefik.http.routers.handymoov.tls.certresolver=myresolver"
 
-  database:
+  h-database:
     image: mariadb:lts
     restart: always
     networks:

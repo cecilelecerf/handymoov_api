@@ -18,7 +18,7 @@ services:
       - routing_routing
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.handymoov.rule=Host(`api.handymoov.fr`)"
+      - "traefik.http.routers.handymoov.rule=Host(`api.handymoov.com`)"
       - "traefik.http.routers.handymoov.entrypoints=websecure"
       - "traefik.http.routers.handymoov.tls.certresolver=myresolver"
 

@@ -10,19 +10,23 @@ import { body, validationResult } from "express-validator";
 
 export const postAFeedback = async (req: UserRequest, res: Response) => {
   try {
-    const { object, title, description } = req.body;
     // TODO : vérification à effectué
-    await Feedback.create({
-      object: object,
-      title: title,
-      description: description,
+
+    const { object, title, description } = req.body;
+
+    // Créer un nouveau feedback avec les données fournies
+    const newFeedback = await Feedback.create({
+      object,
+      title,
+      description,
       user_id: req.user.id,
       read: false,
       hightPriority: false,
     });
-    res.status(204).send();
+
+    // Répondre avec le statut 201 (Créé) et renvoyer le nouveau feedback
+    res.status(201).json({ feedback: newFeedback });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

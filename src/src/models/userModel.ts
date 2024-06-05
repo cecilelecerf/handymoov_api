@@ -100,14 +100,18 @@ User.init(
   }
 );
 // Liaison avec les autres modèles
-PersonalizedAddress.belongsTo(User, { as: "User", foreignKey: "user_id" });
+PersonalizedAddress.belongsTo(User, {
+  as: "User",
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
 User.hasMany(PersonalizedAddress, {
   as: "PersonalizedAddress",
-  onDelete: "cascade",
+  onDelete: "CASCADE",
 });
-Feedback.belongsTo(User, { foreignKey: "user_id" });
-Issue.belongsTo(User, { foreignKey: "user_id" });
-CurrentIssue.belongsTo(User, { foreignKey: "user_id" });
+Feedback.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
+Issue.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
+CurrentIssue.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
 // Hash avant de sauvegarder en base de données
 User.addHook("beforeSave", async (user: User) => {
   try {

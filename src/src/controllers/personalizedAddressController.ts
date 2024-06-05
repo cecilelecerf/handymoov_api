@@ -36,8 +36,6 @@ export const getAPersonalizedAddress = async (req: Request, res: Response) => {
     const personalizedAddress = await PersonalizedAddress.findByPk(
       req.body.personalizedAddress_id
     );
-    console.log(req.body.personalizedAddress_id);
-    console.log(personalizedAddress);
     if (!personalizedAddress) {
       return res.status(404).json({ msg: "Addresse non trouvée." });
     }
@@ -52,15 +50,16 @@ export const getAPersonalizedAddress = async (req: Request, res: Response) => {
 **********************************************************/
 
 // TODO : verif si l'adresse correspond bien à l'user
-export const putAPersonalizedAddress = async (req: Request, res: Response) => {
+export const patchAPersonalizedAddress = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { id, country, city, street, number, lat, lng } = req.body;
     const personalizedAddress = await PersonalizedAddress.findByPk(id);
     if (!personalizedAddress) {
       return res.status(404).json({ msg: "Adresse non trouvée." });
     }
-    console.log(id, country, city, street, number, lat, lng);
-    console.log(personalizedAddress);
     await PersonalizedAddress.update(
       {
         country: req.body.country ? country : personalizedAddress.country,

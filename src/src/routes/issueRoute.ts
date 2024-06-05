@@ -11,7 +11,7 @@ import {
   postAIssue,
 } from "../controllers/issueController";
 import { postACurrentIssue } from "../controllers/currentIssueController";
-
+// TODO delete a issue
 router.route("/").all(verifyToken).get(getAllIssues).post(postAIssue);
 router.route("/actif").all(verifyToken).get(getAllIssuesActif);
 router.route("/:issue_id").all(verifyToken).get(getAIssue);

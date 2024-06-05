@@ -8,6 +8,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "../swagger/swagger_config";
 import journeyRoute from "../routes/journeyRoute";
 import path from "path";
+import cors from "cors";
 
 import fs from "fs";
 
@@ -20,6 +21,16 @@ const createUploadsDirectory = () => {
 
 function createServer() {
   const app = express();
+  app.use(
+    cors({
+      origin: [
+        "http://localhost:8003",
+        "https://handymoov.com",
+        "http://localhost:8002",
+      ],
+    })
+  );
+
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   const uploadsDirectory = path.resolve("/app/uploads");

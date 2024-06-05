@@ -5,7 +5,7 @@ import {
   deleteAPersonalizedAddress,
   getAPersonalizedAddress,
   getAllPersonalizedAddress,
-  putAPersonalizedAddress,
+  patchAPersonalizedAddress,
 } from "../controllers/personalizedAddressController";
 import { verifyToken } from "../middlewares/jwtMiddlewares";
 
@@ -13,7 +13,7 @@ router
   .route("/")
   .all(verifyToken)
   .post(getAPersonalizedAddress)
-  .patch(putAPersonalizedAddress)
+  .patch(patchAPersonalizedAddress)
   .put(deleteAPersonalizedAddress);
 
 router.route("/all").all(verifyToken).get(getAllPersonalizedAddress);

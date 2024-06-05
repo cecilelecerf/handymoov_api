@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: API de gestion des utilisateurs
+  description: API pour la gestion des utilisateurs de l'application HandyMoov
+  version: 1.0.0
+servers:
+  - url: http://localhost:3003
+tags:
+  - name: Personalized Address
+    description: API pour la gestion des adresses personnalisées des utilisateurs
+components:
+  schemas:
+    PersonalizedAddress:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID de l'adresse personnalisée
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de l'adresse personnalisée
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Date de modification de l'adresse personnalisée
+        label:
+          type: string
+          description: Libellé de l'adresse personnalisée
+        country:
+          type: string
+          description: Pays de l'adresse personnalisée
+        city:
+          type: string
+          description: Ville de l'adresse personnalisée
+        street:
+          type: string
+          description: Rue de l'adresse personnalisée
+        number:
+          type: string
+          description: Numéro de l'adresse personnalisée
+        user_id:
+          type: integer
+          format: int64
+          description: ID de l'utilisateur auquel l'adresse est associée
+      required:
+        - id
+        - label
+        - user_id
+        - createdAt
+        - modifiedAt
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton d'authentification JWT
+paths:
+  /personalizedAddress:
+    get:
+      summary: Récupérer toutes les adresses personnalisées de l'utilisateur connecté
+      tags:
+        - Personalized Address
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste de toutes les adresses personnalisées récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalizedAddress'
+        '400':
+          description: Aucune adresse trouvée pour l'utilisateur connecté
+        '500':
+          description: Erreur lors du traitement des données côté serveur
+
+  /personalizedAddress/{personalizedAddress_id}:
+    get:
+      summary: Récupérer une adresse personnalisée par son ID
+      tags:
+        - Personalized Address
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: personalizedAddress_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+          description: ID de l'adresse personnalisée à récupérer
+      responses:
+        '200':
+          description: Adresse personnalisée récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalizedAddress'
+        '404':
+          description: Adresse personnalisée non trouvée
+        '500':
+          description: Erreur lors du traitement des données côté serveur
+
+    put:
+      summary: Mettre à jour une adresse personnalisée par son ID
+      tags:
+        - Personalized Address
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: personalizedAddress_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+          description: ID de l'adresse personnalisée à mettre à jour
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalizedAddress'
+      responses:
+        '200':
+          description: Adresse personnalisée mise à jour avec succès
+        '404':
+          description: Adresse personnalisée non trouvée
+        '500':
+          description: Erreur lors du traitement des données côté serveur
+
+    delete:
+      summary: Supprimer une adresse personnalisée par son ID
+      tags:
+        - Personalized Address
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: personalizedAddress_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+          description: ID de l'adresse personnalisée à supprimer
+      responses:
+        '204':
+          description: Adresse personnalisée supprimée avec succès
+        '404':
+          description: Adresse personnalisée non trouvée
+        '500':
+          description: Erreur lors du traitement des données côté serveur

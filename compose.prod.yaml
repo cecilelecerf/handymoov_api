@@ -12,7 +12,7 @@ services:
     volumes:
       - './src:/app'
     depends_on:
-      db:
+      database:
         condition: service_healthy
     networks:
       - routing_routing
@@ -22,7 +22,7 @@ services:
       - "traefik.http.routers.handymoov.entrypoints=websecure"
       - "traefik.http.routers.handymoov.tls.certresolver=myresolver"
 
-  db:
+  database:
     image: mariadb:lts
     restart: always
     networks:

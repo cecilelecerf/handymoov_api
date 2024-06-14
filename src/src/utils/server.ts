@@ -23,11 +23,7 @@ function createServer() {
   const app = express();
   app.use(
     cors({
-      origin: [
-        "http://localhost:8003",
-        "https://handymoov.com",
-        "http://localhost:8002",
-      ],
+      origin: ["https://api.handymoov.com", "https://handymoov.com"],
     })
   );
 

@@ -20,6 +20,12 @@ const createUploadsDirectory = () => {
 
 function createServer() {
   const app = express();
+  // app.use(
+  //   cors({
+  //     origin: ["https://api.handymoov.com", "https://handymoov.com"],
+  //   })
+  // );
+
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   const uploadsDirectory = path.resolve("/app/uploads");

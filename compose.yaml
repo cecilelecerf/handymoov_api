@@ -1,21 +1,21 @@
 version: '3.9'
 
 services:
-  node:
+  h-node:
     image: node:lts-slim
     working_dir: /app
     env_file:
       - .env
     command: /bin/sh -c 'npm install && npm run start'
     ports:
-      - '3003:3003'
+      - '3005:3005'
     volumes:
       - './src:/app'
     depends_on:
-      db:
+      h-database:
         condition: service_healthy
 
-  db:
+  h-database:
     image: mariadb:lts
     restart: always
     healthcheck:
@@ -45,9 +45,9 @@ services:
       - '8081:80'
     restart: always
     depends_on:
-      - db
+      - h-database
     environment:
-      PMA_HOST: db
+      PMA_HOST: ${DB_HOST}
       PMA_USER: ${DB_USER}
       PMA_PASSWORD: ${DB_PASSWORD}
       PMA_ARBITRARY: 1

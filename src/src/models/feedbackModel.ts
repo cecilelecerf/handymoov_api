@@ -9,8 +9,12 @@ import {
   Sequelize,
 } from "sequelize";
 import ObjectFeedback from "./objectFeedbackModel";
-const db = new Sequelize("handymoov", "admin", "admin", {
-  host: "db",
+const userDB = process.env.DB_USER;
+const passwordDB = process.env.DB_PASSWORD;
+const hostDB = process.env.DB_HOST;
+const nameDB = process.env.DB_NAME;
+const db = new Sequelize(nameDB, userDB, passwordDB, {
+  host: hostDB,
   dialect: "mysql",
 });
 class Feedback extends Model<

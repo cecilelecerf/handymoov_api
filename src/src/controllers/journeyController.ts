@@ -61,7 +61,6 @@ export const getFilteredJourneys = async (req: Request, res: Response) => {
 
     res.status(200).json(filterJourney);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Failed to fetch journeys" });
   }
 };

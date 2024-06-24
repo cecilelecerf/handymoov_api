@@ -68,17 +68,13 @@ const defaultObjectFeedbacks = [
 
 export const initializeDefaultObjectFeedbacks = async () => {
   for (const object of defaultObjectFeedbacks) {
-    const [created] = await ObjectFeedback.findOrCreate({
+    await ObjectFeedback.findOrCreate({
       where: { label: object.label },
       defaults: {
         label: object.label,
         icon: object.icon,
       },
     });
-
-    if (created) {
-      console.log(`Created default object: ${object.label}`);
-    }
   }
 };
 

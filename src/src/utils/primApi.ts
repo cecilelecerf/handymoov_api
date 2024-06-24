@@ -6,7 +6,7 @@ const apiRatp = axios.create({
 
 apiRatp.interceptors.request.use(
   async (config) => {
-    config.headers.apiKey = "4e4KdoR520tjPe5H7f4K3TjIS7OQlKK4";
+    config.headers.apiKey = process.env.KEY_PRIM;
     return config;
   },
   (error) => {

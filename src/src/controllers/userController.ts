@@ -56,6 +56,8 @@ export const registerAUser = async (req: Request, res: Response) => {
       validateCGU({ cgu });
       await existingEmail({ email: email });
     } catch (validationError) {
+      // console.error(validationError);
+      // console.log("--------- enter");
       if (validationError.status) {
         return res.status(validationError.status).json({
           msg: validationError.msg,

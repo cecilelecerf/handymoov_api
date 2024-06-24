@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  h-node:
+    image: node:lts-slim
+    working_dir: /app
+    env_file:
+      - .env
+    command: /bin/sh -c 'npm install && npm run start'
+    ports:
+      - '3005:3005'
+    volumes:
+      - './src:/app'
+    depends_on:
+      h-database:
+        condition: service_healthy
+    networks:
+      - routing_routing
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.handymoov.rule=Host(`api.handymoov.com`)"
+      - "traefik.http.routers.handymoov.entrypoints=websecure"
+      - "traefik.http.routers.handymoov.tls.certresolver=myresolver"
+
+  h-database:
+    image: mariadb:lts
+    restart: always
+    networks:
+      - routing_routing
+    healthcheck:
+      interval: 20s
+      retries: 3
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      timeout: 20s
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+    volumes:
+      - ./db:/var/lib/mysql
+      
+networks:
+  routing_routing:
+    external: true

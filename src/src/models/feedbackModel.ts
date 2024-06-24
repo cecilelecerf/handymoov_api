@@ -1,7 +1,6 @@
 import {
   CreationOptional,
   DataTypes,
-  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
@@ -9,6 +8,7 @@ import {
   Sequelize,
 } from "sequelize";
 import ObjectFeedback from "./objectFeedbackModel";
+
 const userDB = process.env.DB_USER;
 const passwordDB = process.env.DB_PASSWORD;
 const hostDB = process.env.DB_HOST;

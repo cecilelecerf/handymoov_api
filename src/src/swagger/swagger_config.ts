@@ -20,7 +20,7 @@ const options = {
     ],
   },
 
-  apis: ["./swagger/*.yaml"],
+  apis: ["./src/swagger/*.yaml"],
 };
 
 export default swaggerJsdoc(options);

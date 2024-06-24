@@ -10,17 +10,24 @@ import { Request, Response } from "express";
 import User from "../models/userModel";
 import bcrypt from "bcrypt";
 import {
-  validPassword,
   validateBirthday,
   validateCGU,
-  validateConfirmEmail,
-  validateConfirmPassword,
-  validateEmail,
   validateFirstname,
   validateLastname,
-  validatePassword,
   validateRole,
-} from "../validations/userValidation";
+} from "../validations/userValidation/userValidation";
+import {
+  existingEmail,
+  emailUpdate,
+  emailExist,
+  emailFormat,
+} from "../validations/userValidation/emailValidation";
+import {
+  passwordFormat,
+  passwordCompare,
+  passwordUpdate,
+  passwordExist,
+} from "../validations/userValidation/passwordValidation";
 
 export const registerAUser = async (req: Request, res: Response) => {
   try {
@@ -37,14 +44,17 @@ export const registerAUser = async (req: Request, res: Response) => {
     } = req.body;
 
     try {
-      await validateEmail({ email });
       validateFirstname({ firstname, required: true });
       validateLastname({ lastname, required: true });
-      validatePassword({ password });
+      emailExist({ email: email });
+      emailFormat({ email: email });
+      passwordExist({ password: password });
+      passwordFormat({ password: password });
       validateBirthday({ birthday, required: true });
-      validateConfirmPassword({ password, confirmPassword });
+      passwordUpdate({ password, confirmPassword });
       validateRole(role);
       validateCGU({ cgu });
+      await existingEmail({ email: email });
     } catch (validationError) {
       if (validationError.status) {
         return res.status(validationError.status).json({
@@ -81,14 +91,14 @@ export const registerAUser = async (req: Request, res: Response) => {
         wheelchair,
       });
     }
-
-    ["Maison", "Travail"].map(async (value) => {
-      await PersonalizedAddress.create({ label: value, user_id: user.id });
-    });
+    await Promise.all(
+      ["Maison", "Travail"].map(async (value) => {
+        await PersonalizedAddress.create({ label: value, user_id: user.id });
+      })
+    );
 
     res.status(204).send();
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       msg: "Erreur lors du traitement des données.",
     });
@@ -101,18 +111,18 @@ export const registerAUser = async (req: Request, res: Response) => {
 
 export const loginAUser = async (req: Request, res: Response) => {
   try {
-    const user = await User.findOne({ where: { email: req.body.email } });
-
-    if (!user) {
-      return res.status(401).json({
+    const { email, password } = req.body;
+    const user = await User.findOne({ where: { email: email } });
+    if (!user)
+      res.status(401).json({
         param: ["email", "password"],
         msg: "Email ou mot de passe incorrect.",
       });
-    }
-
     try {
-      await validPassword({
-        reqPassword: req.body.password,
+      passwordExist({ password: password });
+      emailExist({ email: email });
+      await passwordCompare({
+        reqPassword: password,
         userPassword: user.password,
       });
       const userData = {
@@ -121,8 +131,8 @@ export const loginAUser = async (req: Request, res: Response) => {
         role: user.role,
         firstname: user.firstname,
         lastname: user.lastname,
+        password: user.password,
       };
-
       const token = jwt.sign(userData, process.env.JWT_KEY, {
         expiresIn: "30d",
       });
@@ -181,13 +191,14 @@ export const patchAUser = async (req: UserRequest, res: Response) => {
 
     try {
       if (email || confirmEmail || lastEmail) {
-        validateConfirmEmail({
+        emailExist({ email: email });
+        emailUpdate({
           email,
           confirmEmail,
           lastEmail,
           userEmail: req.user.email,
         });
-        await validateEmail({ email });
+        emailFormat({ email });
       }
       if (firstname) {
         validateFirstname({ firstname, required: false });
@@ -199,14 +210,14 @@ export const patchAUser = async (req: UserRequest, res: Response) => {
         validateBirthday({ birthday, required: false });
       }
       if (password || lastPassword || confirmPassword) {
-        validatePassword({ password });
-        validateConfirmPassword({
+        passwordExist({ password });
+        passwordFormat({ password });
+        passwordUpdate({
           password,
           confirmPassword,
           lastPassword,
-          userPassword: user.password,
         });
-        await validPassword({
+        await passwordCompare({
           reqPassword: lastPassword,
           userPassword: user.password,
         });
@@ -271,13 +282,28 @@ export const putAProfilePictureUser = async (
 
 export const deleteAUser = async (req: UserRequest, res: Response) => {
   try {
-    const user = await User.findByPk(req.user.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    const { password } = req.body;
+    try {
+      await passwordCompare({
+        reqPassword: password,
+        userPassword: req.user.password,
+      });
+    } catch (validationError) {
+      if (validationError.status) {
+        return res.status(validationError.status).json({
+          msg: validationError.msg,
+          param: validationError.param,
+        });
+      } else {
+        return res.status(400).json({
+          msg: validationError.msg,
+          param: validationError.param,
+        });
+      }
     }
-    await PersonalizedAddress.destroy({ where: { user_id: user.id } });
+
     await User.destroy({
-      where: { id: user.id },
+      where: { id: req.user.id },
     });
 
     res.status(204).send();
@@ -299,30 +325,26 @@ export const getAllUser = async (req: UserRequest, res: Response) => {
   }
 };
 
-// TODO : test à faire
 /**********************************************************
             MÉTHODE POUR MODIFIER SON MOT DE PASSE
 **********************************************************/
 
 export const patchAUserPassword = async (req: UserRequest, res: Response) => {
   try {
-    let user = await User.findByPk(req.user.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Utilisateur non trouvé." });
-    }
     const { password, lastPassword, confirmPassword } = req.body;
 
     try {
-      validatePassword({ password });
-      validateConfirmPassword({
+      passwordExist({ password });
+      passwordFormat({ password });
+      passwordUpdate({
         password,
         confirmPassword,
         lastPassword,
-        userPassword: user.password,
       });
-      await validPassword({
+      await passwordCompare({
         reqPassword: lastPassword,
-        userPassword: user.password,
+        userPassword: req.user.password,
+        notEmail: true,
       });
     } catch (validationError) {
       if (validationError.status)
@@ -331,10 +353,13 @@ export const patchAUserPassword = async (req: UserRequest, res: Response) => {
           .json({ msg: validationError.msg, param: validationError.param });
       else return res.status(400).json(validationError);
     }
-    await user.update({
-      password: await bcrypt.hash(req.body.password, 10),
-      modifiedAt: new Date(Date.now()),
-    });
+    await User.update(
+      {
+        password: await bcrypt.hash(req.body.password, 10),
+        modifiedAt: new Date(Date.now()),
+      },
+      { where: { id: req.user.id } }
+    );
 
     res.status(204).send();
   } catch (error) {
@@ -348,20 +373,16 @@ export const patchAUserPassword = async (req: UserRequest, res: Response) => {
 
 export const patchAUserEmail = async (req: UserRequest, res: Response) => {
   try {
-    let user = await User.findByPk(req.user.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Utilisateur non trouvé." });
-    }
     const { email, lastEmail, confirmEmail } = req.body;
 
     try {
-      validateConfirmEmail({
+      emailUpdate({
         email,
         confirmEmail,
         lastEmail,
         userEmail: req.user.email,
       });
-      await validateEmail({ email });
+      emailFormat({ email });
     } catch (validationError) {
       if (validationError.status)
         return res
@@ -369,10 +390,13 @@ export const patchAUserEmail = async (req: UserRequest, res: Response) => {
           .json({ msg: validationError.msg, param: validationError.param });
       else return res.status(400).json(validationError);
     }
-    await user.update({
-      email: email,
-      modifiedAt: new Date(Date.now()),
-    });
+    await User.update(
+      {
+        email: email,
+        modifiedAt: new Date(Date.now()),
+      },
+      { where: { id: req.user.id } }
+    );
 
     res.status(204).send();
   } catch (error) {
@@ -386,10 +410,6 @@ export const patchAUserEmail = async (req: UserRequest, res: Response) => {
 
 export const patchAUserProfil = async (req: UserRequest, res: Response) => {
   try {
-    let user = await User.findByPk(req.user.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Utilisateur non trouvé." });
-    }
     const { firstname, lastname, birthday } = req.body;
 
     try {
@@ -409,12 +429,15 @@ export const patchAUserProfil = async (req: UserRequest, res: Response) => {
           .json({ msg: validationError.msg, param: validationError.param });
       else return res.status(400).json(validationError);
     }
-    await user.update({
-      firstname: firstname,
-      lastname: lastname,
-      modifiedAt: new Date(Date.now()),
-      birthday: birthday,
-    });
+    await User.update(
+      {
+        firstname: firstname,
+        lastname: lastname,
+        modifiedAt: new Date(Date.now()),
+        birthday: birthday,
+      },
+      { where: { id: req.user.id } }
+    );
 
     res.status(204).send();
   } catch (error) {

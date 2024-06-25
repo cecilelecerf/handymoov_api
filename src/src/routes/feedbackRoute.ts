@@ -22,7 +22,7 @@ router
   .route("/single/:feedback_id")
   .all(isAdmin)
   .get(getAFeedback)
-  .patch(putAFeedback)
+  .put(putAFeedback)
   .delete(deleteAFeedback);
 router
   .route("/object")

@@ -1,10 +1,22 @@
 import supertest from "supertest";
 import { UserProps, loginUser, registerUser, user } from "./usersConst";
 import createServer from "../../utils/server";
+import User from "../../models/userModel";
+import { Op } from "sequelize";
+import { patchAUserPassword } from "../../controllers/userController";
 
 const app = createServer();
 
 describe("PATCH PASSWORD /users/updatePassword", () => {
+  let token: string;
+  beforeEach(async () => {
+    await supertest(app).post("/users/register").send(registerUser);
+    const loginRes = await supertest(app).post("/users/login").send(loginUser);
+    token = loginRes.body.token;
+  });
+  afterEach(async () => {
+    await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
+  });
   interface UserPasswordPatch {
     lastPassword: UserProps["password"];
     password: UserProps["password"];
@@ -16,12 +28,7 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
     password: newPassword,
     confirmPassword: newPassword,
   };
-  let token: string;
-  beforeEach(async () => {
-    await supertest(app).post("/users/register").send(registerUser);
-    const loginRes = await supertest(app).post("/users/login").send(loginUser);
-    token = loginRes.body.token;
-  });
+
   it("should return 204 if update password success", async () => {
     const response = await supertest(app)
       .patch("/users/updatePassword")
@@ -39,8 +46,8 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .send(inputUser);
       expect(statusCode).toBe(400);
       expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe est obligatoire.",
+        param: ["lastPassword"],
+        msg: "L'ancien mot de passe est obligatoire.",
       });
     });
     it("password is missing", async () => {
@@ -58,15 +65,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
   });
   describe("validate password", () => {
     it("should return 400 if password is less than 7 characters", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "Pass1!",
-        confirmPassword: "Pass1!",
+      const patchPassword = {
+        ...userPasswordPatch,
+        password: "Pas1@",
+        confirmPassword: "Pas1@",
       };
       const { statusCode, body } = await supertest(app)
         .patch("/users/updatePassword")
         .set("authorization", token)
-        .send(inputUser);
+        .send(patchPassword);
 
       expect(statusCode).toBe(400);
       expect(body).toEqual({
@@ -76,15 +83,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
     });
 
     it("should return 400 if password does not contain an uppercase letter", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "password1!",
-        confirmPassword: "password1!",
+      const patchPassword = {
+        ...userPasswordPatch,
+        password: "pass12@eefef",
+        confirmPassword: "pass12@eefef",
       };
       const { statusCode, body } = await supertest(app)
         .patch("/users/updatePassword")
         .set("authorization", token)
-        .send(inputUser);
+        .send(patchPassword);
 
       expect(statusCode).toBe(400);
       expect(body).toEqual({
@@ -94,15 +101,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
     });
 
     it("should return 400 if password does not contain a lowercase letter", async () => {
-      const inputUser = {
-        ...registerUser,
+      const patchPassword = {
+        ...userPasswordPatch,
         password: "PASSWORD1!",
         confirmPassword: "PASSWORD1!",
       };
       const { statusCode, body } = await supertest(app)
         .patch("/users/updatePassword")
         .set("authorization", token)
-        .send(inputUser);
+        .send(patchPassword);
 
       expect(statusCode).toBe(400);
       expect(body).toEqual({
@@ -117,7 +124,7 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .patch("/users/updatePassword")
         .set("authorization", token)
         .send({
-          ...registerUser,
+          ...userPasswordPatch,
           password: newPassword,
           confirmPassword: newPassword,
         });
@@ -135,7 +142,7 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .patch("/users/updatePassword")
         .set("authorization", token)
         .send({
-          ...registerUser,
+          ...userPasswordPatch,
           password: newPassword,
           confirmPassword: newPassword,
         });

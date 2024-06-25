@@ -59,6 +59,12 @@ export const emailUpdate = ({
       msg: "L'ancien email est obligatoire.",
     };
   }
+  if (!email) {
+    throw {
+      param: ["email"],
+      msg: "L'email est obligatoire.",
+    };
+  }
   if (!confirmEmail) {
     throw {
       param: ["confirmEmail"],

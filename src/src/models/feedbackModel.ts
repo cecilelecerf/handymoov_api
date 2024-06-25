@@ -47,7 +47,7 @@ Feedback.init(
       defaultValue: NOW,
     },
     object: {
-      type: DataTypes.CHAR(100),
+      type: DataTypes.CHAR(50),
       allowNull: false,
     },
     title: {
@@ -55,7 +55,7 @@ Feedback.init(
       allowNull: false,
     },
     description: {
-      type: DataTypes.CHAR,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     user_id: {

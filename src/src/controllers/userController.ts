@@ -56,8 +56,6 @@ export const registerAUser = async (req: Request, res: Response) => {
       validateCGU({ cgu });
       await existingEmail({ email: email });
     } catch (validationError) {
-      // console.error(validationError);
-      // console.log("--------- enter");
       if (validationError.status) {
         return res.status(validationError.status).json({
           msg: validationError.msg,
@@ -116,7 +114,7 @@ export const loginAUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email: email } });
     if (!user)
-      res.status(401).json({
+      return res.status(401).json({
         param: ["email", "password"],
         msg: "Email ou mot de passe incorrect.",
       });
@@ -127,18 +125,6 @@ export const loginAUser = async (req: Request, res: Response) => {
         reqPassword: password,
         userPassword: user.password,
       });
-      const userData = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        password: user.password,
-      };
-      const token = jwt.sign(userData, process.env.JWT_KEY, {
-        expiresIn: "30d",
-      });
-      res.status(200).json({ token });
     } catch (validationError) {
       if (validationError.status)
         return res
@@ -146,8 +132,23 @@ export const loginAUser = async (req: Request, res: Response) => {
           .json({ msg: validationError.msg, param: validationError.param });
       else return res.status(400).json(validationError);
     }
+    const userData = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      password: user.password,
+    };
+    const token = jwt.sign(userData, process.env.JWT_KEY, {
+      expiresIn: "30d",
+    });
+
+    return res.status(200).json({ token });
   } catch (error) {
-    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+    return res
+      .status(500)
+      .json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
@@ -336,13 +337,14 @@ export const patchAUserPassword = async (req: UserRequest, res: Response) => {
     const { password, lastPassword, confirmPassword } = req.body;
 
     try {
-      passwordExist({ password });
-      passwordFormat({ password });
+      passwordExist({ password, lastPasswordRequired: true, lastPassword });
       passwordUpdate({
         password,
         confirmPassword,
         lastPassword,
       });
+      passwordFormat({ password });
+
       await passwordCompare({
         reqPassword: lastPassword,
         userPassword: req.user.password,
@@ -363,20 +365,22 @@ export const patchAUserPassword = async (req: UserRequest, res: Response) => {
       { where: { id: req.user.id } }
     );
 
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
-    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+    return res
+      .status(500)
+      .json({ msg: "Erreur lors du traitement des données." });
   }
 };
 
 /**********************************************************
             MÉTHODE POUR MODIFIER SON EMAIL
 **********************************************************/
-
 export const patchAUserEmail = async (req: UserRequest, res: Response) => {
   try {
     const { email, lastEmail, confirmEmail } = req.body;
 
+    // Gestion des validations synchrones
     try {
       emailUpdate({
         email,
@@ -384,14 +388,21 @@ export const patchAUserEmail = async (req: UserRequest, res: Response) => {
         lastEmail,
         userEmail: req.user.email,
       });
+      await existingEmail({ email });
       emailFormat({ email });
     } catch (validationError) {
-      if (validationError.status)
-        return res
-          .status(validationError.status)
-          .json({ msg: validationError.msg, param: validationError.param });
-      else return res.status(400).json(validationError);
+      // Vérification et retour des erreurs de validation
+      if (validationError.status) {
+        return res.status(validationError.status).json({
+          msg: validationError.msg,
+          param: validationError.param,
+        });
+      } else {
+        return res.status(400).json(validationError);
+      }
     }
+
+    // Mise à jour de l'email de l'utilisateur
     await User.update(
       {
         email: email,
@@ -400,8 +411,10 @@ export const patchAUserEmail = async (req: UserRequest, res: Response) => {
       { where: { id: req.user.id } }
     );
 
+    // Retourne un code 204 No Content si la mise à jour est réussie
     res.status(204).send();
   } catch (error) {
+    // Gestion des erreurs
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
 };

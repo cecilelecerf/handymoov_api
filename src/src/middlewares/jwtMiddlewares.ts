@@ -24,7 +24,6 @@ export const verifyToken = async (
 ) => {
   try {
     const token = req.headers["authorization"];
-    console.log(token);
     if (!token) {
       return res.status(403).json({ msg: "Accès interdit: token manquant" });
     }
@@ -61,7 +60,6 @@ export const isAdmin = async (
         .json({ msg: "Accès interdit: rôle administrateur requis" });
     }
   } catch (error) {
-    console.error("Erreur de vérification du token:", error);
     res.status(403).json({ msg: "Accès interdit: token invalide" });
   }
 };

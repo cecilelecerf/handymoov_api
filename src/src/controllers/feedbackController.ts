@@ -3,6 +3,11 @@ import { Request } from "express";
 import Feedback from "../models/feedbackModel";
 import { UserRequest } from "../middlewares/jwtMiddlewares";
 import { body, validationResult } from "express-validator";
+import {
+  existFeedback,
+  feedbackLengthValidation,
+  objectValidationFeedback,
+} from "../validations/feedbackValidation";
 
 /**********************************************************
             MÉTHODE POUR POSTER UN FEEDBACK
@@ -13,8 +18,15 @@ export const postAFeedback = async (req: UserRequest, res: Response) => {
     // TODO : vérification à effectué
 
     const { object, title, description } = req.body;
-
-    // Créer un nouveau feedback avec les données fournies
+    try {
+      existFeedback({ object, title, description });
+      await objectValidationFeedback({ objectLabel: object });
+      feedbackLengthValidation({ title, description });
+    } catch (validationError) {
+      return res
+        .status(400)
+        .json({ msg: validationError.msg, param: validationError.param });
+    }
     const newFeedback = await Feedback.create({
       object,
       title,
@@ -23,9 +35,7 @@ export const postAFeedback = async (req: UserRequest, res: Response) => {
       read: false,
       hightPriority: false,
     });
-
-    // Répondre avec le statut 201 (Créé) et renvoyer le nouveau feedback
-    res.status(201).json({ feedback: newFeedback });
+    res.status(201).json(newFeedback);
   } catch (error) {
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
@@ -38,8 +48,8 @@ export const postAFeedback = async (req: UserRequest, res: Response) => {
 export const getAllFeedbacks = async (req: Request, res: Response) => {
   try {
     const feedbacks = await Feedback.findAll();
-    if (!feedbacks)
-      return res.status(400).json({ msg: "Aucun feedbacks trouvés" });
+    if (!feedbacks || feedbacks.length === 0)
+      return res.status(404).json({ msg: "Aucun feedbacks trouvés." });
 
     res.status(200).json(feedbacks);
   } catch (error) {
@@ -73,21 +83,35 @@ export const getAFeedback = async (req: Request, res: Response) => {
 **********************************************************/
 
 export const putAFeedback = async (req: Request, res: Response) => {
+  const { object, title, description, read, hightPriority } = req.body;
+  try {
+    existFeedback({
+      object,
+      title,
+      description,
+      read,
+      hightPriority,
+      admin: true,
+    });
+    await objectValidationFeedback({ objectLabel: object });
+    feedbackLengthValidation({ title, description });
+  } catch (validationError) {
+    return res
+      .status(400)
+      .json({ msg: validationError.msg, param: validationError.param });
+  }
   try {
     const feedback = await Feedback.findByPk(req.params.feedback_id);
     if (!feedback) {
       return res.status(404).json({ msg: "Feedback non trouvée." });
     }
+
     await Feedback.update(
       {
-        object: req.body.object ? req.body.object : feedback.object,
-        description: req.body.description
-          ? req.body.feedback
-          : feedback.description,
-        read: req.body.read ? req.body.read : feedback.read,
-        hightPriority: req.body.hightPriority
-          ? req.body.hightPriority
-          : feedback.hightPriority,
+        object: object,
+        description: description,
+        read: read,
+        hightPriority: hightPriority,
         modifiedAt: new Date(Date.now()),
       },
       { where: { id: req.params.feedback_id } }

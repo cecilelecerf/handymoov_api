@@ -8,6 +8,7 @@ async function connect() {
   const db = new Sequelize(nameDB, userDB, passwordDB, {
     host: hostDB,
     dialect: "mysql",
+    logging: false,
   });
 
   // Test de la connexion à la base de données
@@ -16,7 +17,6 @@ async function connect() {
     await db.authenticate();
     console.log("authentification valid");
   } catch (error) {
-    console.error(error);
     process.exit(1);
   }
 }

@@ -30,7 +30,6 @@ function createServer() {
   app.use(express.json());
   const uploadsDirectory = path.resolve("/app/uploads");
   app.use("/uploads", express.static(uploadsDirectory));
-  // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
   // Configuration de Swagger
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   createUploadsDirectory();

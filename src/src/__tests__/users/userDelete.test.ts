@@ -1,10 +1,18 @@
 import supertest from "supertest";
 import { UserProps, loginUser, registerUser, user } from "./usersConst";
 import createServer from "../../utils/server";
+import User from "../../models/userModel";
+import { Op } from "sequelize";
 
 const app = createServer();
 
 describe("DELETE /users", () => {
+  beforeEach(async () => {
+    await supertest(app).post("/users/register").send(registerUser);
+  });
+  afterEach(async () => {
+    await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
+  });
   interface DeleteUserProps {
     password: UserProps["password"];
   }

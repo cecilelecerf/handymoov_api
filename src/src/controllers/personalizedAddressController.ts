@@ -17,7 +17,7 @@ export const getAllPersonalizedAddress = async (
       where: { user_id: req.user.id },
     });
     if (!personalizedAddress)
-      return res.status(400).json({ msg: "Aucune adresse trouvée" });
+      return res.status(404).json({ msg: "Aucune adresse trouvée" });
 
     res.status(200).json(personalizedAddress);
   } catch (error) {

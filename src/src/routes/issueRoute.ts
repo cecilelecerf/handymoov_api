@@ -15,6 +15,7 @@ import { postACurrentIssue } from "../controllers/currentIssueController";
 router.route("/").all(verifyToken).get(getAllIssues).post(postAIssue);
 router.route("/actif").all(verifyToken).get(getAllIssuesActif);
 router.route("/:issue_id").all(verifyToken).get(getAIssue);
+// TODO ne fonctionne pas
 router.route("/user").all(verifyToken).get(getAllIssuesUser);
 router.route("/currentIssue").all(verifyToken).post(postACurrentIssue);
 

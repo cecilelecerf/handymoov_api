@@ -1,6 +1,14 @@
 import supertest from "supertest";
-import { UserProps, loginUser, registerUser, user } from "./usersConst";
+import {
+  RegisterUserProps,
+  UserProps,
+  loginUser,
+  registerUser,
+  user,
+} from "./usersConst";
 import createServer from "../../utils/server";
+import User from "../../models/userModel";
+import { Op } from "sequelize";
 
 const app = createServer();
 
@@ -16,11 +24,15 @@ describe("PATCH EMAIL /users/updateEmail", () => {
     email: newEmail,
     confirmEmail: newEmail,
   };
+
   let token: string;
   beforeEach(async () => {
     await supertest(app).post("/users/register").send(registerUser);
     const loginRes = await supertest(app).post("/users/login").send(loginUser);
     token = loginRes.body.token;
+  });
+  afterEach(async () => {
+    await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
   });
   it("should return 204 if valid update Email", async () => {
     const response = await supertest(app)
@@ -31,14 +43,24 @@ describe("PATCH EMAIL /users/updateEmail", () => {
   });
   describe("validate email", () => {
     it("should return 409 if duplicate email", async () => {
-      const newEmail = "aepa@gmail.com";
-      await supertest(app)
-        .post("/users/register")
-        .send({ ...registerUser, email: newEmail });
+      // register new people
+      const newPeople: RegisterUserProps = {
+        email: newEmail,
+        firstname: user["firstname"],
+        lastname: user["lastname"],
+        birthday: user["birthday"],
+        password: user["password"],
+        confirmPassword: user["password"],
+        wheelchair: user["wheelchair"],
+        cgu: true,
+      };
+      await supertest(app).post("/users/register").send(newPeople);
+
+      // req
       const { statusCode, body } = await supertest(app)
         .patch("/users/updateEmail")
         .set("authorization", token)
-        .send({ ...userEmailPatch, email: newEmail, confirmEmail: newEmail });
+        .send(userEmailPatch);
       expect(statusCode).toBe(409);
       expect(body).toEqual({
         param: ["email"],

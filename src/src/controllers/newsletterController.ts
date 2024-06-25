@@ -26,7 +26,6 @@ export const getANewsletter = async (req: Request, res: Response) => {
 
 export const postANewsletter = async (req: Request, res: Response) => {
   try {
-    console.log(req.body.email);
     if (!req.body.email) {
       return res.status(404).json({ msg: "Email obligatoire" });
     }
@@ -67,7 +66,7 @@ export const getAllNewsletter = async (req: Request, res: Response) => {
   try {
     const newsletters = await Newsletter.findAll();
     if (!newsletters)
-      return res.status(400).json({ msg: "Aucun utilisateur trouvé" });
+      return res.status(404).json({ msg: "Aucun utilisateur trouvé" });
     res.status(200).json(newsletters);
   } catch (error) {
     res.status(500).json({ msg: "Erreur lors du traitement des données." });

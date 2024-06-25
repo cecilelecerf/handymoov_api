@@ -1,6 +1,8 @@
 import supertest from "supertest";
 import { loginUser, registerUser } from "./usersConst";
 import createServer from "../../utils/server";
+import User from "../../models/userModel";
+import { Op } from "sequelize";
 
 const app = createServer();
 
@@ -10,6 +12,9 @@ describe("PATCH PROFIL /users/updateProfil", () => {
     await supertest(app).post("/users/register").send(registerUser);
     const loginRes = await supertest(app).post("/users/login").send(loginUser);
     token = loginRes.body.token;
+  });
+  afterEach(async () => {
+    await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
   });
   it("should return 204 when updating profile a user", async () => {
     const req = await supertest(app)

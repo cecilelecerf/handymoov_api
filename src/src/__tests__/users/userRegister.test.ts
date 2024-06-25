@@ -1,27 +1,20 @@
 import supertest from "supertest";
 import { Op } from "sequelize";
-import createServer from "../../utils/server";
 import User from "../../models/userModel";
-import { loginUser, registerUser } from "./usersConst";
+import { registerUser } from "./usersConst";
+import createServer from "../../utils/server";
 
 const app = createServer();
 
 describe("User POST /users/register", () => {
   afterEach(async () => {
-    try {
-      await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
-    } catch (error) {
-      console.log("error destroy");
-      console.log(error);
-    }
+    await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
   });
 
   it("should return 204 when registering a new user", async () => {
     const { statusCode, body } = await supertest(app)
       .post("/users/register")
       .send(registerUser);
-    console.log("registerError");
-    console.log(body);
     expect(statusCode).toBe(204);
   });
 

@@ -655,7 +655,7 @@ describe("Feedbacks", () => {
           .set("authorization", tokenAdmin)
           .send(objectFeedback);
         const { statusCode, body } = await supertest(app)
-          .put("/feedbacks/object")
+          .put(`/feedbacks/object/`)
           .set("authorization", tokenAdmin)
           .send({ icon: "lala" });
         console.error(body);

@@ -1,6 +1,20 @@
 import bcrypt from "bcrypt";
 
-export const passwordExist = ({ password }: { password: string }) => {
+export const passwordExist = ({
+  password,
+  lastPassword,
+  lastPasswordRequired,
+}: {
+  password: string;
+  lastPassword?: string;
+  lastPasswordRequired?: boolean;
+}) => {
+  if (!lastPassword && lastPasswordRequired)
+    throw {
+      param: ["lastPassword"],
+      msg: "L'ancien mot de passe est obligatoire.",
+      status: 400,
+    };
   if (!password) {
     throw { param: ["password"], msg: "Le mot de passe est obligatoire." };
   }

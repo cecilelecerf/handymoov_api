@@ -9,16 +9,22 @@ import Issue from "../models/issueModel";
 **********************************************************/
 
 export const postACurrentIssue = async (req: UserRequest, res: Response) => {
-  if (req.body.actif === undefined)
-    return res.status(404).json({ msg: "Actif obligatoire" });
+  const { actif, issue_id } = req.body;
+  if (actif === undefined)
+    return res.status(404).json({ msg: "Actif obligatoire." });
+  if (!issue_id)
+    return res.status(404).json({ msg: "Id de l'issue obligatoire." });
+
   try {
+    const issue = await Issue.findByPk(issue_id);
+    if (!issue) return res.status(404).json({ msg: "L'issue n'existe pas." });
     await CurrentIssue.create({
       user_id: req.user.id,
       issue_id: req.body.issue_id,
       actif: req.body.actif,
     });
     const amountActif = await CurrentIssue.count({
-      where: { issue_id: req.body.issue_id, actif: true },
+      where: { issue_id: req.body.issue_id, actif: false },
     });
 
     if (amountActif === 3) {
@@ -45,7 +51,7 @@ export const getAllCurrentIssues = async (req: Request, res: Response) => {
   try {
     const currentIssues = await CurrentIssue.findAll();
     if (!currentIssues)
-      return res.status(400).json({ msg: "Aucune currentIssues trouvés" });
+      return res.status(404).json({ msg: "Aucune currentIssues trouvés" });
 
     res.status(200).json(currentIssues);
   } catch (error) {

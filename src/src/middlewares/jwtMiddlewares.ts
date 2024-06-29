@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import User from "../models/userModel";
-
-dotenv.config();
 
 // Définir le type pour la propriété 'user' sur l'objet Request
 export interface UserRequest extends Request {
@@ -35,7 +32,6 @@ export const verifyToken = async (
     req.user = payload as User;
     next();
   } catch (error) {
-    console.error("Erreur de vérification du token:", error);
     res.status(403).json({ msg: "Accès interdit: token invalide" });
   }
 };
@@ -52,7 +48,7 @@ export const isAdmin = async (
       return res.status(403).json({ msg: "Accès interdit: token manquant" });
     }
 
-    const payload = await verifyJWT(token);
+    const payload = verifyJWT(token);
     req.user = payload as User;
 
     // Vérification du rôle admin
@@ -64,7 +60,6 @@ export const isAdmin = async (
         .json({ msg: "Accès interdit: rôle administrateur requis" });
     }
   } catch (error) {
-    console.error("Erreur de vérification du token:", error);
     res.status(403).json({ msg: "Accès interdit: token invalide" });
   }
 };

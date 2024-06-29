@@ -8,23 +8,22 @@ import Issue from "../models/issueModel";
 **********************************************************/
 
 export const postAIssue = async (req: UserRequest, res: Response) => {
+  const { label, gpsCoordinateLat, gpsCoordinateLng } = req.body;
   try {
-    if (!req.body.label) {
-      return res.status(404).json({ message: "Label obligatoire" });
+    if (!label) {
+      return res.status(404).json({ msg: "Label obligatoire" });
     }
-    if (!req.body.gpsCoordinateLat || !req.body.gpsCoordinateLng) {
-      return res.status(404).json({ message: "Coordonées obligatoire" });
+    if (!gpsCoordinateLat || !gpsCoordinateLng) {
+      return res.status(404).json({ msg: "Coordonées obligatoire" });
     }
     await Issue.create({
-      label: req.body.label,
-      gpsCoordinateLat: req.body.gpsCoordinateLat,
-
-      gpsCoordinateLng: req.body.gpsCoordinateLng,
-
+      label: label,
+      gpsCoordinateLat: gpsCoordinateLat,
+      gpsCoordinateLng: gpsCoordinateLng,
       actif: true,
       user_id: req.user.id,
     });
-    res.status(200).send();
+    return res.status(200).send();
   } catch (error) {
     res.status(500).json({ msg: "Erreur lors du traitement des données." });
   }
@@ -37,7 +36,8 @@ export const postAIssue = async (req: UserRequest, res: Response) => {
 export const getAllIssues = async (req: Request, res: Response) => {
   try {
     const issues = await Issue.findAll();
-    if (!issues) return res.status(400).json({ msg: "Aucune issues trouvés" });
+    if (!issues || issues.length === 0)
+      return res.status(404).json({ msg: "Aucune issues trouvés" });
 
     res.status(200).json(issues);
   } catch (error) {
@@ -52,11 +52,18 @@ export const getAllIssues = async (req: Request, res: Response) => {
 ********************************************************************************************/
 
 export const getAllIssuesUser = async (req: UserRequest, res: Response) => {
+  console.log("enter");
   try {
+    console.log("tata");
+    const test = await Issue.findAll();
     const issues = await Issue.findAll({ where: { user_id: req.user.id } });
-    if (!issues) return res.status(404).json({ msg: "Aucune issues trouvés" });
+    console.log(test);
+    console.log(req.user.id);
+    console.log(issues);
+    if (!issues || issues.length === 0)
+      return res.status(404).json({ msg: "Aucune issues trouvés" });
 
-    res.status(200).json(issues);
+    return res.status(200).json(issues);
   } catch (error) {
     res.status(500).json({
       msg: `Erreur lors du traitement des données.`,
@@ -71,7 +78,8 @@ export const getAllIssuesUser = async (req: UserRequest, res: Response) => {
 export const getAllIssuesActif = async (req: Request, res: Response) => {
   try {
     const issues = await Issue.findAll({ where: { actif: true } });
-    if (!issues) return res.status(400).json({ msg: "Aucune issues trouvées" });
+    if (!issues || issues.length === 0)
+      return res.status(404).json({ msg: "Aucune issues trouvées." });
 
     res.status(200).json(issues);
   } catch (error) {

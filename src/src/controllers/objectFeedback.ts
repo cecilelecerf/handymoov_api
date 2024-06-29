@@ -7,16 +7,28 @@ import ObjectFeedback from "../models/objectFeedbackModel";
 **********************************************************/
 
 export const postAObjectFeedback = async (req: Request, res: Response) => {
+  console.log("testee");
   try {
-    if (!req.body.label) {
-      return res.status(404).json({ msg: "Label obligatoire" });
+    const { label, icon } = req.body;
+    if (!label) {
+      return res.status(404).json({ msg: "Label obligatoire." });
     }
+    if (!icon) {
+      return res.status(404).json({ msg: "Icon obligatoire." });
+    }
+    const objectFeedback = await ObjectFeedback.findByPk(label);
+    if (objectFeedback)
+      return res.status(400).json({ msg: "L'objet existe déjà." });
     await ObjectFeedback.create({
-      label: req.body.label,
+      label: label,
+      icon: icon,
     });
     res.status(200).send();
   } catch (error) {
-    res.status(500).json({ msg: "Erreur lors du traitement des données." });
+    console.error(error);
+    res
+      .status(500)
+      .json({ msg: "Erreur lors du traitement des données.", error });
   }
 };
 
@@ -27,8 +39,6 @@ export const postAObjectFeedback = async (req: Request, res: Response) => {
 export const getAllObjectFeedbacks = async (req: Request, res: Response) => {
   try {
     const objectfeedbacks = await ObjectFeedback.findAll();
-    if (!objectfeedbacks)
-      return res.status(400).json({ msg: "Aucun object de feedback trouvé" });
 
     res.status(200).json(objectfeedbacks);
   } catch (error) {
@@ -63,14 +73,24 @@ export const getAObjectFeedback = async (req: Request, res: Response) => {
 
 export const putAObjectFeedback = async (req: Request, res: Response) => {
   try {
+    const { label, icon } = req.body;
+    console.error(label, icon);
+    if (!label) {
+      return res.status(404).json({ msg: "Label obligatoire." });
+    }
+    if (!icon) {
+      return res.status(404).json({ msg: "Icon obligatoire." });
+    }
     const objectfeedback = await ObjectFeedback.findByPk(req.params.label);
     if (!objectfeedback) {
       return res.status(404).json({ msg: "ObjectFeedback non trouvée." });
     }
+
     await ObjectFeedback.update(
       {
-        label: req.body.object ? req.body.object : objectfeedback.label,
+        label: label,
         modifiedAt: new Date(Date.now()),
+        icon: icon,
       },
       { where: { label: req.params.label } }
     );

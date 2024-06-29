@@ -1,8 +1,8 @@
 import express from "express";
-import { getFilteredJourneys } from "../controllers/journeyController";
 import { verifyToken } from "../middlewares/jwtMiddlewares";
+import JourneyController from "../controllers/journeyController";
 const router = express.Router();
 
-router.route("/").all(verifyToken).post(getFilteredJourneys);
+router.route("/").all(verifyToken).post(JourneyController.getFilteredJourneys);
 
 export default router;

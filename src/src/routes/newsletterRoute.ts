@@ -1,14 +1,14 @@
 import express from "express";
+import NewsletterController from "../controllers/newsletterController";
 const router = express.Router();
 
-import {
-  deleteANewsletter,
-  getANewsletter,
-  getAllNewsletter,
-  postANewsletter,
-} from "../controllers/newsletterController";
-
-router.route("/").post(postANewsletter).get(getAllNewsletter);
-router.route("/:email").get(getANewsletter).delete(deleteANewsletter);
+router
+  .route("/")
+  .post(NewsletterController.postANewsletter)
+  .get(NewsletterController.getAllNewsletter);
+router
+  .route("/:email")
+  .get(NewsletterController.getANewsletter)
+  .delete(NewsletterController.deleteANewsletter);
 
 export default router;

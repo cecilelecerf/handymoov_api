@@ -53,6 +53,9 @@ describe("Feedbacks", () => {
     const allObjectFeedback = await supertest(app)
       .get("/feedbacks/object")
       .set("authorization", token);
+    console.log("tata");
+    console.log(allObjectFeedback.body);
+    console.log("line");
     objectFeedback = allObjectFeedback.body[0].label;
     postAFeedback = {
       object: objectFeedback,

@@ -2,30 +2,24 @@ import express from "express";
 const router = express.Router();
 
 import { isAdmin, verifyToken } from "../middlewares/jwtMiddlewares";
+import IssueController from "../controllers/issueController";
 
-import {
-  deleteAIssue,
-  getAIssue,
-  getAllIssues,
-  getAllIssuesActif,
-  getAllIssuesUser,
-  postAIssue,
-  putAIssue,
-} from "../controllers/issueController";
-import { postACurrentIssue } from "../controllers/currentIssueController";
-
-router.route("/").all(verifyToken).get(getAllIssues).post(postAIssue);
+router
+  .route("/")
+  .all(verifyToken)
+  .get(IssueController.getAllIssues)
+  .post(IssueController.postAIssue);
 router
   .route("/:issue_id")
-  .get(verifyToken, getAIssue)
-  .put(isAdmin, putAIssue)
-  .delete(isAdmin, deleteAIssue);
+  .get(verifyToken, IssueController.getAIssue)
+  .put(isAdmin, IssueController.putAIssue)
+  .delete(isAdmin, IssueController.deleteAIssue);
 
 // TODO ne fonctionne pas
 
-router.route("/actif").all(verifyToken).get(getAllIssuesActif);
-router.route("/user").all(verifyToken).get(getAllIssuesUser);
+router.route("/actif").all(verifyToken).get(IssueController.getAllIssuesActif);
+router.route("/user").all(verifyToken).get(IssueController.getAllIssuesUser);
 
-router.route("/currentIssue").all(verifyToken).post(postACurrentIssue);
+router.route("/currentIssue").all(verifyToken).post(IssueController.postAIssue);
 
 export default router;

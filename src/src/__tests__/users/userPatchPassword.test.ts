@@ -3,7 +3,6 @@ import { UserProps, loginUser, registerUser, user } from "./usersConst";
 import createServer from "../../utils/server";
 import User from "../../models/userModel";
 import { Op } from "sequelize";
-import { patchAUserPassword } from "../../controllers/userController";
 
 const app = createServer();
 

@@ -24,7 +24,7 @@ export const postACurrentIssue = async (req: UserRequest, res: Response) => {
       actif: req.body.actif,
     });
     const amountActif = await CurrentIssue.count({
-      where: { issue_id: req.body.issue_id, actif: true },
+      where: { issue_id: req.body.issue_id, actif: false },
     });
 
     if (amountActif === 3) {

@@ -1,8 +1,12 @@
 import express from "express";
-import { verifyToken } from "../middlewares/jwtMiddlewares";
+import { JwtMiddlewares } from "../middlewares/jwtMiddlewares";
+const jwtMiddlewares = new JwtMiddlewares();
 import JourneyController from "../controllers/journeyController";
 const router = express.Router();
 
-router.route("/").all(verifyToken).post(JourneyController.getFilteredJourneys);
+router
+  .route("/")
+  .all(jwtMiddlewares.isConnect)
+  .post(JourneyController.getFilteredJourneys);
 
 export default router;

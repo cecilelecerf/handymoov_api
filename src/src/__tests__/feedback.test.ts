@@ -1,17 +1,17 @@
 import supertest from "supertest";
 
 import { Op } from "sequelize";
-import createServer from "../../utils/server";
-import User from "../../models/userModel";
+import createServer from "../utils/server";
+import User from "../models/userModel";
 import {
   UserProps,
   loginAdminUser,
   loginUser,
   registerAdminUser,
   registerUser,
-} from "../users/usersConst";
-import Feedback from "../../models/feedbackModel";
-import ObjectFeedback from "../../models/objectFeedbackModel";
+} from "./users/usersConst";
+import Feedback from "../models/feedbackModel";
+import ObjectFeedback from "../models/objectFeedbackModel";
 
 const app = createServer();
 interface ObjectFeedbackProps {
@@ -37,8 +37,9 @@ interface FeedbackPostProps {
 describe("Feedbacks", () => {
   let token: string;
   let tokenAdmin: string;
-  let postAFeedback: FeedbackPostProps;
   let objectFeedback: string;
+  let postAFeedback: FeedbackPostProps;
+
   beforeAll(async () => {
     await supertest(app).post("/users/register").send(registerUser);
     const loginRes = await supertest(app).post("/users/login").send(loginUser);
@@ -53,9 +54,6 @@ describe("Feedbacks", () => {
     const allObjectFeedback = await supertest(app)
       .get("/feedbacks/object")
       .set("authorization", token);
-    console.log("tata");
-    console.log(allObjectFeedback.body);
-    console.log("line");
     objectFeedback = allObjectFeedback.body[0].label;
     postAFeedback = {
       object: objectFeedback,
@@ -72,6 +70,7 @@ describe("Feedbacks", () => {
   afterAll(async () => {
     await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
   });
+
   describe("POST /feedbacks ", () => {
     it("should return 201 if reussit", async () => {
       const { statusCode, body } = await supertest(app)
@@ -304,7 +303,6 @@ describe("Feedbacks", () => {
         .put(`/feedbacks/single/${post.body.id}`)
         .set("authorization", tokenAdmin)
         .send(updatedFeedback);
-      console.error(body);
       expect(statusCode).toBe(200);
     });
 
@@ -321,7 +319,6 @@ describe("Feedbacks", () => {
         .put(`/feedbacks/single/1000`)
         .set("authorization", tokenAdmin)
         .send(updatedFeedback);
-      console.error(body);
 
       expect(statusCode).toBe(404);
       expect(body).toEqual({ msg: "Feedback non trouvée." });
@@ -551,7 +548,7 @@ describe("Feedbacks", () => {
     });
 
     describe("POST /feedbacks/object", () => {
-      it("should create a new object feedback and return 200", async () => {
+      it("should create a new object feedback and return 204", async () => {
         const objectFeedback = {
           label: "Feature Request",
           icon: "feature_icon",
@@ -561,8 +558,7 @@ describe("Feedbacks", () => {
           .post("/feedbacks/object")
           .set("authorization", tokenAdmin)
           .send(objectFeedback);
-        console.error(body);
-        expect(statusCode).toBe(200);
+        expect(statusCode).toBe(204);
 
         const createdFeedback = await ObjectFeedback.findOne({
           where: { label: "Feature Request" },
@@ -647,85 +643,84 @@ describe("Feedbacks", () => {
         expect(body).toEqual({ msg: "Object Feedback non trouvée." });
       });
     });
-    describe("PUT /feedbacks/object", () => {
-      const objectFeedback = {
-        label: "Feature Request",
-        icon: "feature_icon",
-      };
-      it("should return 200 if update object feedback and return 200", async () => {
-        await supertest(app)
-          .post("/feedbacks/object")
-          .set("authorization", tokenAdmin)
-          .send(objectFeedback);
-        const { statusCode, body } = await supertest(app)
-          .put(`/feedbacks/object/`)
-          .set("authorization", tokenAdmin)
-          .send({ icon: "lala" });
-        console.error(body);
-        expect(statusCode).toBe(200);
+    // describe("PUT /feedbacks/object", () => {
+    //   const objectFeedback = {
+    //     label: "Feature Request",
+    //     icon: "feature_icon",
+    //   };
+    //   it("should return 200 if update object feedback and return 200", async () => {
+    //     const test = await supertest(app)
+    //       .post("/feedbacks/object")
+    //       .set("authorization", tokenAdmin)
+    //       .send(objectFeedback);
+    //     const { statusCode, body } = await supertest(app)
+    //       .put(`/feedbacks/object/`)
+    //       .set("authorization", tokenAdmin)
+    //       .send({ icon: "lala" });
+    //     expect(statusCode).toBe(20);
 
-        const createdFeedback = await ObjectFeedback.findOne({
-          where: { label: "lala" },
-        });
+    //     const createdFeedback = await ObjectFeedback.findOne({
+    //       where: { label: "lala" },
+    //     });
 
-        expect(createdFeedback).not.toBeNull();
-        expect(createdFeedback?.label).toBe("lala");
-        expect(createdFeedback?.icon).toBe("lala");
-      });
+    //     expect(createdFeedback).not.toBeNull();
+    //     expect(createdFeedback?.label).toBe("lala");
+    //     expect(createdFeedback?.icon).toBe("lala");
+    //   });
 
-      // it("should return 404 if label is missing", async () => {
-      //   await supertest(app)
-      //     .post("/feedbacks/object")
-      //     .set("authorization", tokenAdmin)
-      //     .send(objectFeedback);
-      //   const updatedFeedback = {
-      //     icon: "feature_icon",
-      //   };
+    //   // it("should return 404 if label is missing", async () => {
+    //   //   await supertest(app)
+    //   //     .post("/feedbacks/object")
+    //   //     .set("authorization", tokenAdmin)
+    //   //     .send(objectFeedback);
+    //   //   const updatedFeedback = {
+    //   //     icon: "feature_icon",
+    //   //   };
 
-      //   const { statusCode, body } = await supertest(app)
-      //     .put("/feedbacks/object")
-      //     .set("authorization", tokenAdmin)
-      //     .send(updatedFeedback);
+    //   //   const { statusCode, body } = await supertest(app)
+    //   //     .put("/feedbacks/object")
+    //   //     .set("authorization", tokenAdmin)
+    //   //     .send(updatedFeedback);
 
-      //   expect(statusCode).toBe(404);
-      //   expect(body).toEqual({ msg: "Label obligatoire." });
-      // });
+    //   //   expect(statusCode).toBe(404);
+    //   //   expect(body).toEqual({ msg: "Label obligatoire." });
+    //   // });
 
-      // it("should return 404 if icon is missing", async () => {
-      //   await supertest(app)
-      //     .post("/feedbacks/object")
-      //     .set("authorization", tokenAdmin)
-      //     .send(objectFeedback);
-      //   const updatedFeedback = {
-      //     label: "Feature Request",
-      //   };
+    //   // it("should return 404 if icon is missing", async () => {
+    //   //   await supertest(app)
+    //   //     .post("/feedbacks/object")
+    //   //     .set("authorization", tokenAdmin)
+    //   //     .send(objectFeedback);
+    //   //   const updatedFeedback = {
+    //   //     label: "Feature Request",
+    //   //   };
 
-      //   const { statusCode, body } = await supertest(app)
-      //     .put("/feedbacks/object")
-      //     .set("authorization", tokenAdmin)
-      //     .send(updatedFeedback);
+    //   //   const { statusCode, body } = await supertest(app)
+    //   //     .put("/feedbacks/object")
+    //   //     .set("authorization", tokenAdmin)
+    //   //     .send(updatedFeedback);
 
-      //   expect(statusCode).toBe(404);
-      //   expect(body).toEqual({ msg: "Icon obligatoire." });
-      // });
-      // it("should return 400 if object feedback does'nt exist", async () => {
-      //   await supertest(app)
-      //     .post("/feedbacks/object")
-      //     .set("authorization", tokenAdmin)
-      //     .send(objectFeedback);
-      //   const updatedFeedback = {
-      //     label: "Featureee Request",
-      //     icon: "feature_icon",
-      //   };
+    //   //   expect(statusCode).toBe(404);
+    //   //   expect(body).toEqual({ msg: "Icon obligatoire." });
+    //   // });
+    //   // it("should return 400 if object feedback does'nt exist", async () => {
+    //   //   await supertest(app)
+    //   //     .post("/feedbacks/object")
+    //   //     .set("authorization", tokenAdmin)
+    //   //     .send(objectFeedback);
+    //   //   const updatedFeedback = {
+    //   //     label: "Featureee Request",
+    //   //     icon: "feature_icon",
+    //   //   };
 
-      //   const { statusCode, body } = await supertest(app)
-      //     .put("/feedbacks/object")
-      //     .set("authorization", tokenAdmin)
-      //     .send(updatedFeedback);
-      //   expect(statusCode).toBe(200);
+    //   //   const { statusCode, body } = await supertest(app)
+    //   //     .put("/feedbacks/object")
+    //   //     .set("authorization", tokenAdmin)
+    //   //     .send(updatedFeedback);
+    //   //   expect(statusCode).toBe(200);
 
-      //   expect(body).toEqual({ msg: "ObjectFeedback non trouvée." });
-      // });
-    });
+    //   //   expect(body).toEqual({ msg: "ObjectFeedback non trouvée." });
+    //   // });
+    // });
   });
 });

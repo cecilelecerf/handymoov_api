@@ -1,68 +1,337 @@
 openapi: 3.0.0
 info:
-  title: API de gestion des utilisateurs
-  description: API pour la gestion des utilisateurs de l'application HandyMoov
+  title: User API
+  description: API documentation for managing users
   version: 1.0.0
 tags:
   - name: User
     description: API pour la gestion des utilisateurs
+servers:
+  - url: http://localhost:3005
 components:
+  securitySchemes:
+    UserAuth:
+      type: apiKey
+      in: header
+      name: authorization
+      description: JWT token authentication
   schemas:
     User:
       type: object
-      required:
-        - id
-        - firstname
-        - lastname
-        - email
-        - password
-        - role
-        - createdAt
-        - modifiedAt
       properties:
         id:
           type: integer
-          description: ID de l'utilisateur
-        firstname:
-          type: string
-          description: Prénom de l'utilisateur
-        lastname:
-          type: string
-          description: Nom de l'utilisateur
-        email:
-          type: string
-          description: Adresse email de l'utilisateur
-        password:
-          type: string
-          description: Mot de passe de l'utilisateur
-        role:
-          type: string
-          description: Rôle de l'utilisateur (user, admin)
+          description : User ID
         createdAt:
           type: string
           format: date-time
-          description: Date et heure de création de l'utilisateur
+          description: User creation date and time
         modifiedAt:
           type: string
           format: date-time
-          description: Date et heure de dernière mise à jour de l'utilisateur
-      securitySchemes:
-        bearerAuth:
-          type: http
-          scheme: bearer
-          bearerFormat: JWT
-          description: Vérification si c'est le bon utilisateur
-        AdminAuth:
-          type: http
-          scheme: bearer
-          bearerFormat: JWT
-          description: Seuls les administrateurs ont accès à cette route.
+          description: User last updated date and time
+        email:
+          type: string
+          description: User email address
+        firstname:
+          type: string
+          description: User first name
+        lastname:
+          type: string
+          description: User last name
+        birthday:
+          type: string
+          format: date
+          description: User date of birth (YYYY-MM-DD)
+        wheelchair:
+          type: boolean
+          description: Indicates if the user uses a wheelchair
+        profilePicture:
+          type: string
+          description: Accept the general conditions of use
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+          description: User role (user, admin)
+      required:
+        - email
+        - firstname
+        - lastname
+        - birthday
+        - wheelchair
+        - password
+        - role
+      example:
+        id: 1
+        createdAt: '2024-07-04T12:00:00Z'
+        modifiedAt: '2024-07-04T12:00:00Z'
+        email: example@example.com
+        firstname: John
+        lastname: Doe
+        birthday: 1990-01-01
+        wheelchair: false
+        profilePicture: https://example.com/profile.jpg
+        role: user
+
 paths:
   /users/register:
     post:
-      summary: Enregistrer un nouvel utilisateur
+      summary: Register a new user
       tags:
         - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+                role:
+                  type: string
+                birthday:
+                  type: string
+                wheelchair:
+                  type: boolean
+                cgu:
+                  type: boolean
+      responses:
+        '204':
+          description: User registered successfully
+        '400':
+          description: Invalid query, required fields are missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                  param:
+                    type: array
+                    items:
+                      type: string
+        '409':
+          description: This email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                  param:
+                    type: array
+                    items:
+                      type: string
+        '500':
+          description: Error processing data on server side
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+
+  /users/login:
+    post:
+      summary: Login to user account
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login, returns JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, invalid credentials
+        '500':
+          description: Internal server error
+
+  /users:
+    get:
+      summary: Get user details
+      tags:
+        - User
+      security:
+        - UserAuth: []
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized, token invalid or expired
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update user details
+      tags:
+        - User
+      security:
+        - UserAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+                birthday:
+                  type: string
+                picture:
+                  type: string
+      responses:
+        '204':
+          description: User details updated successfully
+        '400':
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, token invalid or expired
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete user account
+      tags:
+        - User
+      security:
+        - UserAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '204':
+          description: User deleted successfully
+        '400':
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, invalid password
+        '500':
+          description: Internal server error
+
+  /users/updatePassword:
+    patch:
+      summary: Update user password
+      tags:
+        - User
+      security:
+        - UserAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                lastPassword:
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        '204':
+          description: Password updated successfully
+        '400':
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, invalid credentials
+        '500':
+          description: Internal server error
+
+  /users/updateEmail:
+    patch:
+      summary: Update user email
+      tags:
+        - User
+      security:
+        - UserAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                lastEmail:
+                  type: string
+                confirmEmail:
+                  type: string
+      responses:
+        '204':
+          description: Email updated successfully
+        '400':
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, invalid email or credentials
+        '409':
+          description: Conflict, email already in use
+        '500':
+          description: Internal server error
+
+  /users/updateProfil:
+    patch:
+      summary: Update user profile details
+      tags:
+        - User
+      security:
+        - UserAuth: []
       requestBody:
         required: true
         content:
@@ -72,120 +341,69 @@ paths:
               properties:
                 firstname:
                   type: string
-                  description: Prénom de l'utilisateur
                 lastname:
                   type: string
-                  description: Nom de l'utilisateur
-                email:
+                birthday:
                   type: string
-                  format: email
-                  description: Adresse email de l'utilisateur
-                password:
-                  type: string
-                  format: password
-                  description: Mot de passe de l'utilisateur
-              required:
-                - firstname
-                - lastname
-                - email
-                - password
       responses:
         '204':
-          description: Utilisateur enregistré avec succès
+          description: User profile updated successfully
         '400':
-          description: Requête invalide, des champs obligatoires sont manquants
-        '409':
-          description: Cet email existe déjà
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, token invalid or expired
+        '404':
+          description: User not found
         '500':
-          description: Erreur lors du traitement des données côté serveur
+          description: Internal server error
 
-  /users/login:
-    post:
-      summary: Connecter un utilisateur existant
-      tags: [User]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - email
-                - password
-      responses:
-        '200':
-          description: Utilisateur connecté avec succès
-        '400':
-          description: Requête invalide
-        '401':
-          description: Email ou mot de passe incorrect
-
-  /users:
-    get:
-      summary: Récupérer les informations de l'utilisateur connecté
-      tags: [User]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Informations de l'utilisateur récupérées avec succès
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-    put:
-      summary: Mettre à jour les informations de l'utilisateur connecté
-      tags: [User]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-      responses:
-        '200':
-          description: Informations de l'utilisateur mises à jour avec succès
-        '400':
-          description: Requête invalide
-    delete:
-      summary: Supprimer le compte de l'utilisateur connecté
-      tags: [User]
-      security:
-        - bearerAuth: []
-      responses:
-        '204':
-          description: Compte utilisateur supprimé avec succès
-        '401':
-          description: Non autorisé à supprimer le compte
-
-  /users/all:
-    get:
-      summary: Récupérer tous les utilisateurs
+  /users/profile-picture:
+    patch:
+      summary: Update user profile picture
       tags:
         - User
       security:
-        - bearerAuth: []
+        - UserAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profilePicture:
+                  type: string
+      responses:
+        '204':
+          description: Profile picture updated successfully
+        '400':
+          description: Bad request, validation error
+        '401':
+          description: Unauthorized, token invalid or expired
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /users/all:
+    get:
+      summary: Get all users (admin only)
+      tags:
+        - User
+      security:
+        - UserAuth: []
       responses:
         '200':
-          description: Liste de tous les utilisateurs récupérée avec succès
+          description: Users retrieved successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-        '400':
-          description: Aucun utilisateur trouvé
+        '401':
+          description: Unauthorized, token invalid or expired
+        '403':
+          description: Forbidden, admin access required
         '500':
-          description: Erreur lors du traitement des données
-    security:
-      - bearerAuth: []
-      - AdminAuth: []
-
+          description: Internal server error

@@ -37,7 +37,6 @@ class UserController {
         UserController.validateCGU({ cgu });
         await UserController.existingEmail({ email: email });
       } catch (validationError) {
-        console.log(validationError);
         if (validationError.status) {
           return res.status(validationError.status).json({
             msg: validationError.msg,
@@ -78,7 +77,6 @@ class UserController {
           await PersonalizedAddress.create({ label: value, user_id: user.id });
         })
       );
-      console.log(user);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({
@@ -94,15 +92,24 @@ class UserController {
   static async loginAUser(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
-      const user = await User.findOne({ where: { email: email } });
-      if (!user)
-        return res.status(401).json({
-          param: ["email", "password"],
-          msg: "Email ou mot de passe incorrect.",
-        });
       try {
         UserController.passwordExist({ password: password });
         UserController.emailExist({ email: email });
+      } catch (validationError) {
+        if (validationError.status)
+          return res
+            .status(validationError.status)
+            .json({ msg: validationError.msg, param: validationError.param });
+        else return res.status(400).json(validationError);
+      }
+      const user = await User.findOne({ where: { email: email } });
+      if (!user) {
+        return res.status(404).json({
+          param: ["email", "password"],
+          msg: "Email ou mot de passe incorrect.",
+        });
+      }
+      try {
         await UserController.passwordCompare({
           reqPassword: password,
           userPassword: user.password,
@@ -442,6 +449,7 @@ class UserController {
       res.status(500).json({ msg: "Erreur lors du traitement des données." });
     }
   }
+
   static validateFirstname({
     firstname,
     required = true,
@@ -638,7 +646,7 @@ class UserController {
         msg: notEmail
           ? "Mot de passe incorrect."
           : "Email ou mot de passe incorrect.",
-        status: 401,
+        status: 404,
       };
     }
   }

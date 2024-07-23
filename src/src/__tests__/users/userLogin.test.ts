@@ -25,7 +25,7 @@ describe("User POST /users/login", () => {
     expect(body).toHaveProperty("token");
   });
 
-  describe("should return 401 if email or password is wrong", () => {
+  describe("should return 404 if email or password is wrong", () => {
     it("email is wrong", async () => {
       const { statusCode, body } = await supertest(app)
         .post("/users/login")
@@ -33,7 +33,7 @@ describe("User POST /users/login", () => {
           email: "wrongEmail@gmail.com",
           password: registerUser.password,
         });
-      expect(statusCode).toBe(401);
+      expect(statusCode).toBe(404);
       expect(body).toEqual({
         param: ["email", "password"],
         msg: "Email ou mot de passe incorrect.",
@@ -43,7 +43,7 @@ describe("User POST /users/login", () => {
       const { statusCode, body } = await supertest(app)
         .post("/users/login")
         .send({ email: loginUser.email, password: "987" });
-      expect(statusCode).toBe(401);
+      expect(statusCode).toBe(404);
       expect(body).toEqual({
         param: ["email", "password"],
         msg: "Email ou mot de passe incorrect.",

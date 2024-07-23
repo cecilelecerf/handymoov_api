@@ -16,16 +16,18 @@ class ObjectFeedbackController {
       if (!icon) {
         return res.status(404).json({ msg: "Icon obligatoire." });
       }
+      console.log("test exist passé");
       const objectFeedback = await ObjectFeedback.findByPk(label);
+      console.log(objectFeedback);
       if (objectFeedback)
         return res.status(400).json({ msg: "L'objet existe déjà." });
+
       await ObjectFeedback.create({
         label: label,
         icon: icon,
       });
-      res.status(200).send();
+      res.status(204).send();
     } catch (error) {
-      console.error(error);
       res
         .status(500)
         .json({ msg: "Erreur lors du traitement des données.", error });
@@ -74,7 +76,6 @@ class ObjectFeedbackController {
   static async putAObjectFeedback(req: Request, res: Response) {
     try {
       const { label, icon } = req.body;
-      console.error(label, icon);
       if (!label) {
         return res.status(404).json({ msg: "Label obligatoire." });
       }

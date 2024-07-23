@@ -89,7 +89,6 @@ describe("Issues", () => {
         .get("/issues")
         .set("authorization", token);
       expect(statusCode).toBe(200);
-      console.log(body);
       expect(body).toEqual(
         expect.arrayContaining([
           {
@@ -106,12 +105,12 @@ describe("Issues", () => {
         ])
       );
     });
-    it("should return 400 if not issues", async () => {
+    it("should return 404 if not issues", async () => {
       const { statusCode, body } = await supertest(app)
         .get("/issues")
         .set("authorization", token);
 
-      expect(statusCode).toBe(400);
+      expect(statusCode).toBe(404);
       expect(body).toEqual({ msg: "Aucune issues trouvés" });
     });
   });
@@ -125,6 +124,7 @@ describe("Issues", () => {
       const { statusCode, body } = await supertest(app)
         .get("/issues/actif")
         .set("authorization", token);
+      console.error(body);
       expect(statusCode).toBe(200);
       expect(body).toEqual(
         expect.arrayContaining([
@@ -142,16 +142,16 @@ describe("Issues", () => {
         ])
       );
     });
-    it("should return 400 if not issues", async () => {
+    it("should return 404 if not issues", async () => {
       const { statusCode, body } = await supertest(app)
         .get("/issues/actif")
         .set("authorization", token);
 
-      expect(statusCode).toBe(400);
+      expect(statusCode).toBe(404);
       expect(body).toEqual({ msg: "Aucune issues trouvées." });
     });
   });
-  describe("GET /issues/:issue_id", () => {
+  describe("GET /issues/single/:issue_id", () => {
     it("should return 200 if reussit", async () => {
       await supertest(app)
         .post("/issues")
@@ -161,7 +161,7 @@ describe("Issues", () => {
         .get("/issues")
         .set("authorization", token);
       const { statusCode, body } = await supertest(app)
-        .get(`/issues/${allIssues.body[0].id}`)
+        .get(`/issues/single/${allIssues.body[0].id}`)
         .set("authorization", token);
 
       expect(statusCode).toBe(200);
@@ -179,7 +179,7 @@ describe("Issues", () => {
     });
     it("should return 404 if not issues", async () => {
       const { statusCode, body } = await supertest(app)
-        .get("/issues/3")
+        .get("/issues/single/3")
         .set("authorization", token);
 
       expect(statusCode).toBe(404);
@@ -227,11 +227,11 @@ describe("Issues", () => {
           issue_id: allIssues.body[0].id,
           actif: true,
         };
-        const { statusCode } = await supertest(app)
+        const { statusCode, body } = await supertest(app)
           .post(`/issues/currentIssue`)
           .set("authorization", token)
           .send(isActif);
-
+        console.error(body);
         expect(statusCode).toBe(200);
       });
       it("isn't actif", async () => {

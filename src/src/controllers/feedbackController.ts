@@ -14,8 +14,13 @@ class FeedbackController {
       // TODO : vérification à effectué
 
       const { object, title, description } = req.body;
+      console.log(object);
       try {
-        FeedbackController.existFeedback({ object, title, description });
+        FeedbackController.existFeedback({
+          object: object,
+          title: title,
+          description: description,
+        });
         await FeedbackController.objectValidationFeedback({
           objectLabel: object,
         });
@@ -158,6 +163,8 @@ class FeedbackController {
     read?: boolean;
     hightPriority?: boolean;
   }) {
+    console.log("loop");
+    console.log(object);
     if (!object) throw { param: ["object"], msg: "L'objet est obligatoire." };
     if (!title) throw { param: ["title"], msg: "Le titre est obligatoire." };
     if (!description)

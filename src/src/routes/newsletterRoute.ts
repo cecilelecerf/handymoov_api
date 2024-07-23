@@ -1,11 +1,13 @@
 import express from "express";
 import NewsletterController from "../controllers/newsletterController";
+import { JwtMiddlewares } from "../middlewares/jwtMiddlewares";
+const jwtMiddlewares = new JwtMiddlewares();
 const router = express.Router();
 
 router
   .route("/")
   .post(NewsletterController.postANewsletter)
-  .get(NewsletterController.getAllNewsletter);
+  .get(jwtMiddlewares.isAdmin, NewsletterController.getAllNewsletter);
 router
   .route("/:email")
   .get(NewsletterController.getANewsletter)

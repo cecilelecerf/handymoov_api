@@ -52,14 +52,9 @@ class IssueController {
 ********************************************************************************************/
 
   static async getAllIssuesUser(req: UserRequest, res: Response) {
-    console.log("enter");
     try {
-      console.log("tata");
       const test = await Issue.findAll();
       const issues = await Issue.findAll({ where: { user_id: req.user.id } });
-      console.log(test);
-      console.log(req.user.id);
-      console.log(issues);
       if (!issues || issues.length === 0)
         return res.status(404).json({ msg: "Aucune issues trouvés" });
 

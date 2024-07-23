@@ -153,13 +153,14 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
       });
     });
   });
-  it("Should return a 401 error if the current password is incorrect", async () => {
-    const response = await supertest(app)
+  it("Should return a 404 error if the current password is incorrect", async () => {
+    const { statusCode, body } = await supertest(app)
       .patch("/users/updatePassword")
       .set("authorization", token)
       .send({ ...userPasswordPatch, lastPassword: "wrongPassword" });
-    expect(response.status).toBe(401);
-    expect(response.body).toEqual({
+    console.error(body);
+    expect(statusCode).toBe(404);
+    expect(body).toEqual({
       param: ["password"],
       msg: "Mot de passe incorrect.",
     });

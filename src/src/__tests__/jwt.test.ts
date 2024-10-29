@@ -1,59 +1,114 @@
-// import supertest from "supertest";
-// import createServer from "../utils/server";
-// import dotenv from "dotenv";
+import supertest from "supertest";
+import User from "../models/userModel";
+import { loginUser, registerUser } from "./users/usersConst";
+import { Op } from "sequelize";
+import createServer from "../utils/server";
+const app = createServer();
 
-// dotenv.config();
+describe("JWT", () => {
+  afterEach(async () => {
+    await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
+  });
+  describe("Middleware jwtMiddlewares.isConnect", () => {
+    it("should return an error message with code 401 if the token is missing", async () => {
+      const response = await supertest(app)
+        .get("/users")
+        .set("authorization", ""); // Pas de token
 
-// const app = createServer();
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({
+        msg: "Accès interdit: token manquant",
+      });
+    });
 
-// describe("Middleware verifyToken", () => {
-//   // Définir un utilisateur de test avec un jeton valide pour les tests
-//   const testUser = {
-//     id: 123,
-//     role: "admin",
-//   };
+    it("should return an error message with code 401 if the token is invalid", async () => {
+      const response = await supertest(app)
+        .get("/users")
+        .set("authorization", "invalid_token"); // Token invalide
 
-//   // Mock de la fonction verifyJWT pour simuler la vérification du token
-//   jest.mock("jsonwebtoken", () => ({
-//     verify: jest.fn().mockImplementation((token, secret, callback) => {
-//       if (token === "valid_token") {
-//         callback(null, testUser); // Utilisateur avec un jeton valide
-//       } else {
-//         callback(new Error("Invalid token"));
-//       }
-//     }),
-//   }));
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({
+        msg: "Accès interdit: token invalide",
+      });
+    });
 
-//   it("devrait retourner un message d'erreur avec le code 403 si le token est manquant", async () => {
-//     const response = await supertest(app)
-//       .get("/protected-route")
-//       .set("Authorization", ""); // Pas de token
+    it("should add the user to the req object if the token is valid", async () => {
+      await supertest(app).post("/users/register").send(registerUser);
+      const loginRes = await supertest(app)
+        .post("/users/login")
+        .send(loginUser);
+      const token = loginRes.body.token;
+      const { statusCode, body } = await supertest(app)
+        .get("/users")
+        .set("authorization", token);
 
-//     expect(response.status).toBe(403);
-//     expect(response.body).toEqual({
-//       message: "Accès interdit: token manquant",
-//     });
-//   });
+      expect(statusCode).toBe(200);
+      expect(body).toEqual({
+        birthday: "2001-07-22T00:00:00.000Z",
+        createdAt: expect.any(String),
+        email: registerUser.email,
+        firstname: registerUser.firstname,
+        id: expect.any(Number),
+        lastname: registerUser.lastname,
+        modifiedAt: expect.any(String),
+        password: expect.any(String),
+        role: "user",
+        updatedAt: expect.any(String),
+        wheelchair: true,
+        profilePicture: null,
+      });
+    });
+  });
 
-//   it("devrait retourner un message d'erreur avec le code 403 si le token est invalide", async () => {
-//     const response = await supertest(app)
-//       .get("/protected-route")
-//       .set("Authorization", "invalid_token"); // Token invalide
+  // describe("Middleware isAdmin", () => {
+  //   it("should return an error message with code 401 if the token is missing", async () => {
+  //     const response = await supertest(app)
+  //       .get("/users/all")
+  //       .set("authorization", ""); // Pas de token
 
-//     expect(response.status).toBe(403);
-//     expect(response.body).toEqual({
-//       message: "Accès interdit: token invalide",
-//     });
-//   });
+  //     expect(response.status).toBe(401);
+  //     expect(response.body).toEqual({
+  //       msg: "Accès interdit: token manquant",
+  //     });
+  //   });
 
-//   it("devrait ajouter l'utilisateur au objet req si le token est valide", async () => {
-//     const response = await supertest(app)
-//       .get("/protected-route")
-//       .set("Authorization", "valid_token"); // Token valide
+  //   it("should return an error message with code 401 if the token is invalid", async () => {
+  //     const response = await supertest(app)
+  //       .get("/users/all")
+  //       .set("authorization", "invalid_token"); // Pas de token
 
-//     // Vérifiez si l'utilisateur a été ajouté à l'objet req
-//     expect(response.status).toBe(200);
-//     expect(response.body).toHaveProperty("user");
-//     expect(response.body.user).toEqual(testUser);
-//   });
-// });
+  //     expect(response.status).toBe(401);
+  //     expect(response.body).toEqual({
+  //       msg: "Accès interdit: token invalide",
+  //     });
+  //   });
+
+  //   it("should return an error message with code 403 if the user is not admin", async () => {
+  //     await supertest(app).post("/users/register").send(registerUser);
+  //     const loginRes = await supertest(app)
+  //       .post("/users/login")
+  //       .send(loginUser);
+  //     const token = loginRes.body.token;
+  //     const { statusCode, body } = await supertest(app)
+  //       .get("/users/all")
+  //       .set("authorization", token);
+
+  //     expect(statusCode).toBe(403);
+  //     expect(body).toEqual({
+  //       msg: "Accès interdit: rôle administrateur requis",
+  //     });
+  //   });
+
+  //   it("should allow access if user is admin", async () => {
+  //     await supertest(app).post("/users/register").send(registerAdminUser);
+  //     const loginRes = await supertest(app)
+  //       .post("/users/login")
+  //       .send(loginAdminUser);
+  //     const token = loginRes.body.token;
+  //     const { statusCode } = await supertest(app)
+  //       .get("/users/all")
+  //       .set("authorization", token);
+  //     expect(statusCode).toBe(200);
+  //   });
+  // });
+});

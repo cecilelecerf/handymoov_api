@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsc && nodemon dist/src/app.js",
     "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "author": "",
   "license": "ISC",

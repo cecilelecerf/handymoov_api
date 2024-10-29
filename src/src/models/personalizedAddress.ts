@@ -9,7 +9,6 @@ import {
 } from "sequelize";
 
 import { DataTypes } from "sequelize";
-
 const userDB = process.env.DB_USER;
 const passwordDB = process.env.DB_PASSWORD;
 const hostDB = process.env.DB_HOST;

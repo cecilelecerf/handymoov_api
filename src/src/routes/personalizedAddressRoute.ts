@@ -1,21 +1,19 @@
 import express from "express";
 const router = express.Router();
 
-import {
-  deleteAPersonalizedAddress,
-  getAPersonalizedAddress,
-  getAllPersonalizedAddress,
-  patchAPersonalizedAddress,
-} from "../controllers/personalizedAddressController";
-import { verifyToken } from "../middlewares/jwtMiddlewares";
+import { JwtMiddlewares } from "../middlewares/jwtMiddlewares";
+const jwtMiddlewares = new JwtMiddlewares();
+import PersonalizedAddressController from "../controllers/personalizedAddressController";
 
 router
   .route("/")
-  .all(verifyToken)
-  .post(getAPersonalizedAddress)
-  .patch(patchAPersonalizedAddress)
-  .put(deleteAPersonalizedAddress);
-
-router.route("/all").all(verifyToken).get(getAllPersonalizedAddress);
+  .all(jwtMiddlewares.isConnect)
+  .get(PersonalizedAddressController.getAllPersonalizedAddress)
+  .patch(PersonalizedAddressController.patchAPersonalizedAddress)
+  .put(PersonalizedAddressController.deleteAPersonalizedAddress);
+router
+  .route("/:personalizedAddress_id")
+  .all(jwtMiddlewares.isConnect)
+  .get(PersonalizedAddressController.getAPersonalizedAddress);
 
 export default router;

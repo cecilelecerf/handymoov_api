@@ -5,12 +5,12 @@ import feedbackRoute from "../routes/feedbackRoute";
 import issueRoute from "../routes/issueRoute";
 import newsletterRoute from "../routes/newsletterRoute";
 import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "../swagger/swagger_config";
 import journeyRoute from "../routes/journeyRoute";
 import path from "path";
 import cors from "cors";
 
 import fs from "fs";
+import specs from "../swagger/swagger_config";
 
 const createUploadsDirectory = () => {
   const directory = "uploads";
@@ -31,9 +31,8 @@ function createServer() {
   app.use(express.json());
   const uploadsDirectory = path.resolve("/app/uploads");
   app.use("/uploads", express.static(uploadsDirectory));
-  // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
   // Configuration de Swagger
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
   createUploadsDirectory();
   // Configuration des routes
   app.use("/users", userRoute);

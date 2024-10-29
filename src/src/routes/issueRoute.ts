@@ -1,21 +1,36 @@
 import express from "express";
 const router = express.Router();
 
-import { verifyToken } from "../middlewares/jwtMiddlewares";
+import { JwtMiddlewares } from "../middlewares/jwtMiddlewares";
+const jwtMiddlewares = new JwtMiddlewares();
+import IssueController from "../controllers/issueController";
+import CurrentIssueController from "../controllers/currentIssueController";
 
-import {
-  getAIssue,
-  getAllIssues,
-  getAllIssuesActif,
-  getAllIssuesUser,
-  postAIssue,
-} from "../controllers/issueController";
-import { postACurrentIssue } from "../controllers/currentIssueController";
-// TODO delete a issue
-router.route("/").all(verifyToken).get(getAllIssues).post(postAIssue);
-router.route("/actif").all(verifyToken).get(getAllIssuesActif);
-router.route("/:issue_id").all(verifyToken).get(getAIssue);
-router.route("/user").all(verifyToken).get(getAllIssuesUser);
-router.route("/currentIssue").all(verifyToken).post(postACurrentIssue);
+router
+  .route("/")
+  .all(jwtMiddlewares.isConnect)
+  .get(IssueController.getAllIssues)
+  .post(IssueController.postAIssue);
+router
+  .route("/single/:issue_id")
+  .get(jwtMiddlewares.isConnect, IssueController.getAIssue)
+  .put(jwtMiddlewares.isAdmin, IssueController.putAIssue)
+  .delete(jwtMiddlewares.isAdmin, IssueController.deleteAIssue);
+
+// TODO ne fonctionne pas
+
+router
+  .route("/actif")
+  .all(jwtMiddlewares.isConnect)
+  .get(IssueController.getAllIssuesActif);
+router
+  .route("/user")
+  .all(jwtMiddlewares.isConnect)
+  .get(IssueController.getAllIssuesUser);
+
+router
+  .route("/currentIssue")
+  .all(jwtMiddlewares.isConnect)
+  .post(CurrentIssueController.postACurrentIssue);
 
 export default router;

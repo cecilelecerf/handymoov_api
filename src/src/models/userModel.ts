@@ -40,6 +40,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare password: string;
   declare role: string;
 }
+
 User.init(
   {
     id: {
@@ -83,8 +84,7 @@ User.init(
       allowNull: true,
     },
     password: {
-      // TODO mettre le char qui convient
-      type: DataTypes.STRING,
+      type: DataTypes.CHAR(),
       allowNull: false,
     },
     role: {
@@ -104,18 +104,41 @@ User.init(
   }
 );
 // Liaison avec les autres modèles
+
 PersonalizedAddress.belongsTo(User, {
-  as: "User",
   foreignKey: "user_id",
   onDelete: "CASCADE",
 });
-User.hasMany(PersonalizedAddress, {
-  as: "PersonalizedAddress",
+Feedback.belongsTo(User, {
+  foreignKey: "user_id",
   onDelete: "CASCADE",
 });
-Feedback.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
-Issue.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
-CurrentIssue.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
+Issue.belongsTo(User, {
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
+CurrentIssue.belongsTo(User, {
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
+
+User.hasMany(PersonalizedAddress, {
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(Feedback, {
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(Issue, {
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
+User.hasMany(CurrentIssue, {
+  foreignKey: "user_id",
+  onDelete: "CASCADE",
+});
+
 // Hash avant de sauvegarder en base de données
 User.addHook("beforeSave", async (user: User) => {
   try {
@@ -129,6 +152,7 @@ User.addHook("beforeSave", async (user: User) => {
 });
 
 // Synchronisation du modèle avec la base de données
+
 (async () => {
   try {
     await User.sync({ force: false });
@@ -138,7 +162,7 @@ User.addHook("beforeSave", async (user: User) => {
     await ObjectFeedback.sync({ force: false });
     await Feedback.sync({ force: false });
     await Newsletter.sync({ force: false });
-    await initializeDefaultObjectFeedbacks(); // Appelez la fonction d'initialisation après la connexion à la base de données
+    await initializeDefaultObjectFeedbacks();
   } catch (error) {
     console.error("Erreur lors de la synchronisation des models", error);
   }

@@ -42,7 +42,7 @@ describe("User POST /users/login", () => {
     it("password is wrong", async () => {
       const { statusCode, body } = await supertest(app)
         .post("/users/login")
-        .send({ email: loginUser.email, password: "987" });
+        .send({ email: registerUser.email, password: "987" });
       expect(statusCode).toBe(404);
       expect(body).toEqual({
         param: ["email", "password"],

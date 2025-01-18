@@ -7,6 +7,7 @@ async function connect() {
   const nameDB = process.env.DB_NAME;
   const db = new Sequelize(nameDB, userDB, passwordDB, {
     host: hostDB,
+    port: 3306,
     dialect: "mysql",
     logging: false,
   });
@@ -15,8 +16,10 @@ async function connect() {
 
   try {
     await db.authenticate();
+    await db.sync();
     console.log("authentification valid");
   } catch (error) {
+    console.error(error);
     process.exit(1);
   }
 }

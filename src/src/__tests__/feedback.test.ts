@@ -23,7 +23,7 @@ interface FeedbacksProps {
   object: ObjectFeedbackProps["label"];
   title: string;
   description: string;
-  user_id: number;
+  user_id: string;
   read: boolean;
   hightPriority: boolean;
 }
@@ -85,10 +85,10 @@ describe("Feedbacks", () => {
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in .",
         title: "Problème de géolocalisation",
         object: objectFeedback,
-        user_id: expect.any(Number),
+        user_id: expect.any(String),
         read: false,
         hightPriority: false,
-        id: expect.any(Number),
+        id: expect.any(String),
         updatedAt: expect.any(String),
       });
     });
@@ -231,10 +231,10 @@ describe("Feedbacks", () => {
               "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in .",
             title: "Problème de géolocalisation",
             object: objectFeedback,
-            user_id: expect.any(Number),
+            user_id: expect.any(String),
             read: false,
             hightPriority: false,
-            id: expect.any(Number),
+            id: expect.any(String),
             updatedAt: expect.any(String),
           },
         ])
@@ -265,10 +265,10 @@ describe("Feedbacks", () => {
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in .",
         title: "Problème de géolocalisation",
         object: objectFeedback,
-        user_id: expect.any(Number),
+        user_id: expect.any(String),
         read: false,
         hightPriority: false,
-        id: expect.any(Number),
+        id: expect.any(String),
         updatedAt: expect.any(String),
       });
     });

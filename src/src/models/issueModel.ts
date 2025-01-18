@@ -7,6 +7,7 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
+
 const userDB = process.env.DB_USER;
 const passwordDB = process.env.DB_PASSWORD;
 const hostDB = process.env.DB_HOST;
@@ -20,20 +21,20 @@ class Issue extends Model<
   InferAttributes<Issue>,
   InferCreationAttributes<Issue>
 > {
-  declare id: CreationOptional<number>;
+  declare id: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare label: string;
   declare gpsCoordinateLat: number;
   declare gpsCoordinateLng: number;
   declare actif: boolean;
-  declare user_id: number;
+  declare user_id: string;
 }
 Issue.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     createdAt: {
@@ -60,7 +61,7 @@ Issue.init(
       allowNull: false,
     },
     user_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
     },
   },

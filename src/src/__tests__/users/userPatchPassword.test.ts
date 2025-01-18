@@ -158,7 +158,6 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
       .patch("/users/updatePassword")
       .set("authorization", token)
       .send({ ...userPasswordPatch, lastPassword: "wrongPassword" });
-    console.error(body);
     expect(statusCode).toBe(404);
     expect(body).toEqual({
       param: ["password"],

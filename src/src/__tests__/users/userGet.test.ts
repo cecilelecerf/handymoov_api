@@ -30,7 +30,7 @@ describe("User", () => {
         createdAt: expect.any(String),
         email: registerUser.email,
         firstname: registerUser.firstname,
-        id: expect.any(Number),
+        id: expect.any(String),
         lastname: registerUser.lastname,
         modifiedAt: expect.any(String),
         password: expect.any(String),
@@ -38,6 +38,9 @@ describe("User", () => {
         updatedAt: expect.any(String),
         wheelchair: true,
         profilePicture: null,
+        is2FAEnabled: false,
+        isEmailVerified: true,
+        twoFASecret: null,
       });
     });
   });

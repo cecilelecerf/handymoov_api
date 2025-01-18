@@ -19,7 +19,7 @@ const issuePost: IssuesProps = {
   gpsCoordinateLng: 2.3522,
 };
 interface CurrentIssuesProps {
-  issue_id: number;
+  issue_id: string;
   actif: boolean;
 }
 
@@ -97,10 +97,10 @@ describe("Issues", () => {
             modifiedAt: expect.any(String),
             gpsCoordinateLat: expect.any(String),
             gpsCoordinateLng: expect.any(String),
-            id: expect.any(Number),
+            id: expect.any(String),
             label: expect.any(String),
             updatedAt: expect.any(String),
-            user_id: expect.any(Number),
+            user_id: expect.any(String),
           },
         ])
       );
@@ -124,7 +124,6 @@ describe("Issues", () => {
       const { statusCode, body } = await supertest(app)
         .get("/issues/actif")
         .set("authorization", token);
-      console.error(body);
       expect(statusCode).toBe(200);
       expect(body).toEqual(
         expect.arrayContaining([
@@ -134,10 +133,10 @@ describe("Issues", () => {
             modifiedAt: expect.any(String),
             gpsCoordinateLat: expect.any(String),
             gpsCoordinateLng: expect.any(String),
-            id: expect.any(Number),
+            id: expect.any(String),
             label: expect.any(String),
             updatedAt: expect.any(String),
-            user_id: expect.any(Number),
+            user_id: expect.any(String),
           },
         ])
       );
@@ -171,10 +170,10 @@ describe("Issues", () => {
         modifiedAt: expect.any(String),
         gpsCoordinateLat: expect.any(String),
         gpsCoordinateLng: expect.any(String),
-        id: expect.any(Number),
+        id: expect.any(String),
         label: expect.any(String),
         updatedAt: expect.any(String),
-        user_id: expect.any(Number),
+        user_id: expect.any(String),
       });
     });
     it("should return 404 if not issues", async () => {
@@ -231,7 +230,6 @@ describe("Issues", () => {
           .post(`/issues/currentIssue`)
           .set("authorization", token)
           .send(isActif);
-        console.error(body);
         expect(statusCode).toBe(200);
       });
       it("isn't actif", async () => {
@@ -289,7 +287,7 @@ describe("Issues", () => {
     });
     it("should return 404 if issue doesn't exist", async () => {
       const isActif: CurrentIssuesProps = {
-        issue_id: 1,
+        issue_id: "1",
         actif: true,
       };
       const { statusCode, body } = await supertest(app)

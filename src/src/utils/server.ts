@@ -12,6 +12,7 @@ import cors from "cors";
 import fs from "fs";
 import specs from "../swagger/swagger_config";
 import cookieParser from "cookie-parser";
+import { securityHeadersMiddleware } from "../middlewares/securityMiddlewares";
 
 const createUploadsDirectory = () => {
   const directory = "uploads";
@@ -22,17 +23,28 @@ const createUploadsDirectory = () => {
 
 function createServer() {
   const app = express();
-  // app.use(
-  //   cors({
-  //     origin: ["https://api.handymoov.com", "https://handymoov.com"],
-  //   })
-  // );
+  app.use(
+    cors({
+      origin: [
+        "https://api.handymoov.com",
+        "https://handymoov.com",
+        "localhost:3005",
+      ],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+      credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+    })
+  );
+  app.use(securityHeadersMiddleware);
 
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(cookieParser());
 
   const uploadsDirectory = path.resolve("/app/uploads");
+
   app.use("/uploads", express.static(uploadsDirectory));
   // Configuration de Swagger
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));

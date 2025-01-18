@@ -5,9 +5,17 @@ import upload from "../middlewares/mulderMiddlewares";
 import UserController from "../controllers/userController";
 import { JwtMiddlewares } from "../middlewares/jwtMiddlewares";
 import { loginLimiter } from "../middlewares/rateMiddlewares";
+import EmailController from "../controllers/emailController";
 const jwtMiddlewares = new JwtMiddlewares();
 router.route("/register").post(UserController.registerAUser);
-router.route("/login").post(loginLimiter, UserController.loginAUser);
+// router.route("/login").post(loginLimiter, UserController.loginAUser);
+// router.route("/validEmail")
+router.post("/send-email", EmailController.sendVerificationEmail);
+
+// Route pour valider l'email avec le token
+router.get("/verify-email/:token", EmailController.verifyEmail);
+
+router.route("/login").post(UserController.loginAUser);
 
 router
   .route("/")

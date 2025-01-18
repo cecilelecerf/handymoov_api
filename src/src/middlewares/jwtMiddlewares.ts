@@ -69,7 +69,7 @@ export class JwtMiddlewares {
 }
 
 // Génère un token de vérification pour l'utilisateur
-export const generateEmailVerificationToken = (userId: number): string => {
+export const generateEmailVerificationToken = (userId: string): string => {
   const payload = { id: userId };
   const token = jwt.sign(payload, process.env.EMAIL_VERIFICATION_KEY!, {
     expiresIn: "1d",

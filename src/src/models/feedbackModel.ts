@@ -21,21 +21,21 @@ class Feedback extends Model<
   InferAttributes<Feedback>,
   InferCreationAttributes<Feedback>
 > {
-  declare id: CreationOptional<number>;
+  declare id: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare object: string;
   declare title: string;
   declare description: string;
-  declare user_id: number;
+  declare user_id: string;
   declare read: boolean;
   declare hightPriority: boolean;
 }
 Feedback.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     createdAt: {
@@ -59,7 +59,7 @@ Feedback.init(
       allowNull: false,
     },
     user_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
     },
     read: {
       type: DataTypes.BOOLEAN,

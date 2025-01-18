@@ -8,7 +8,7 @@ import {
   Sequelize,
 } from "sequelize";
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import PersonalizedAddress from "./personalizedAddress";
 import Feedback from "./feedbackModel";
 import Issue from "./issueModel";
@@ -28,7 +28,7 @@ const db = new Sequelize(nameDB, userDB, passwordDB, {
 });
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
-  declare id: CreationOptional<number>;
+  declare id: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare email: string;
@@ -47,8 +47,8 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
 User.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     createdAt: {
@@ -157,7 +157,6 @@ User.hasMany(CurrentIssue, {
 // Hash avant de sauvegarder en base de données
 User.addHook("beforeSave", async (user: User) => {
   try {
-    // Valeur par défaut de l'algorithme de hashage : 10
     const algo = await bcrypt.genSalt(10);
     const hashPw = await bcrypt.hash(user.password, algo);
     user.password = hashPw;

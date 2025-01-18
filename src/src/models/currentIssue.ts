@@ -21,18 +21,18 @@ class CurrentIssue extends Model<
   InferAttributes<CurrentIssue>,
   InferCreationAttributes<CurrentIssue>
 > {
-  declare id: CreationOptional<number>;
+  declare id: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
-  declare user_id: number;
-  declare issue_id: number;
+  declare user_id: string;
+  declare issue_id: string;
   declare actif: boolean;
 }
 CurrentIssue.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     createdAt: {
@@ -44,11 +44,11 @@ CurrentIssue.init(
       defaultValue: NOW,
     },
     user_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
     },
     issue_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
     },
     actif: {

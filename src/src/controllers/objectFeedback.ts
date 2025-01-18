@@ -16,9 +16,7 @@ class ObjectFeedbackController {
       if (!icon) {
         return res.status(404).json({ msg: "Icon obligatoire." });
       }
-      console.log("test exist passé");
       const objectFeedback = await ObjectFeedback.findByPk(label);
-      console.log(objectFeedback);
       if (objectFeedback)
         return res.status(400).json({ msg: "L'objet existe déjà." });
 

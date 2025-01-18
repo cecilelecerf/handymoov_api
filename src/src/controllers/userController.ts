@@ -4,7 +4,7 @@ import PersonalizedAddress from "../models/personalizedAddress";
 
 import { Request, Response } from "express";
 import User from "../models/userModel";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 class UserController {
   /**********************************************************
@@ -115,13 +115,12 @@ class UserController {
           userPassword: user.password,
         });
       } catch (validationError) {
-        if (validationError.status)
+        if (validationError.status) {
           return res
             .status(validationError.status)
             .json({ msg: validationError.msg, param: validationError.param });
-        else return res.status(400).json(validationError);
+        } else return res.status(400).json(validationError);
       }
-
       if (user.is2FAEnabled) {
         // Ne pas retourner de token tant que la 2FA n'est pas vérifiée
         return res.status(200).json({
@@ -667,6 +666,9 @@ class UserController {
     userPassword: string;
     notEmail?: boolean;
   }) {
+    reqPassword = reqPassword.trim();
+    userPassword = userPassword.trim();
+
     const validPassword = await bcrypt.compare(reqPassword, userPassword);
     if (!validPassword) {
       throw {
@@ -676,7 +678,7 @@ class UserController {
           : "Email ou mot de passe incorrect.",
         status: 404,
       };
-    }
+    } else return validPassword;
   }
 
   static async existingEmail({ email }: { email: string }) {

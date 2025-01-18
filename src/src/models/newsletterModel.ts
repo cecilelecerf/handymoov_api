@@ -7,6 +7,7 @@ import {
   NOW,
   Sequelize,
 } from "sequelize";
+
 const userDB = process.env.DB_USER;
 const passwordDB = process.env.DB_PASSWORD;
 const hostDB = process.env.DB_HOST;
@@ -20,7 +21,7 @@ class Newsletter extends Model<
   InferAttributes<Newsletter>,
   InferCreationAttributes<Newsletter>
 > {
-  declare id: CreationOptional<number>;
+  declare id: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare modifiedAt: CreationOptional<Date>;
   declare email: string;
@@ -28,8 +29,8 @@ class Newsletter extends Model<
 Newsletter.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     createdAt: {

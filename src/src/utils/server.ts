@@ -11,6 +11,7 @@ import cors from "cors";
 
 import fs from "fs";
 import specs from "../swagger/swagger_config";
+import cookieParser from "cookie-parser";
 
 const createUploadsDirectory = () => {
   const directory = "uploads";
@@ -29,6 +30,8 @@ function createServer() {
 
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+  app.use(cookieParser());
+
   const uploadsDirectory = path.resolve("/app/uploads");
   app.use("/uploads", express.static(uploadsDirectory));
   // Configuration de Swagger

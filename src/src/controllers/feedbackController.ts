@@ -34,7 +34,7 @@ class FeedbackController {
         object,
         title,
         description,
-        user_id: req.user.id,
+        user_id: req.id,
         read: false,
         hightPriority: false,
       });

@@ -121,16 +121,32 @@ class UserController {
             .json({ msg: validationError.msg, param: validationError.param });
         else return res.status(400).json(validationError);
       }
+
+      if (user.is2FAEnabled) {
+        // Ne pas retourner de token tant que la 2FA n'est pas vérifiée
+        return res.status(200).json({
+          msg: "2FA requise",
+          is2FAEnabled: true,
+        });
+      }
+
       const userData = {
         id: user.id,
-        email: user.email,
         role: user.role,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        password: user.password,
       };
+
       const token = jwt.sign(userData, process.env.JWT_KEY, {
-        expiresIn: "30d",
+        expiresIn: "15m",
+      });
+      const refreshToken = jwt.sign(
+        { id: user.id },
+        process.env.JWT_REFRESH_KEY,
+        { expiresIn: "7d" }
+      );
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
       });
 
       return res.status(200).json({ token });
@@ -147,7 +163,7 @@ class UserController {
 
   static async getAUser(req: UserRequest, res: Response) {
     try {
-      const user = await User.findByPk(req.user.id);
+      const user = await User.findByPk(req.id);
 
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
@@ -165,7 +181,7 @@ class UserController {
 
   static async patchAUser(req: UserRequest, res: Response) {
     try {
-      let user = await User.findByPk(req.user.id);
+      let user = await User.findByPk(req.id);
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
       }
@@ -188,7 +204,7 @@ class UserController {
             email,
             confirmEmail,
             lastEmail,
-            userEmail: req.user.email,
+            userEmail: user.email,
           });
           UserController.emailFormat({ email });
         }
@@ -248,7 +264,7 @@ class UserController {
 
   static async putAProfilePictureUser(req: UserRequest, res: Response) {
     try {
-      let user = await User.findByPk(req.user.id);
+      let user = await User.findByPk(req.id);
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
       }
@@ -270,12 +286,16 @@ class UserController {
 **********************************************************/
 
   static async deleteAUser(req: UserRequest, res: Response) {
+    let user = await User.findByPk(req.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    }
     try {
       const { password } = req.body;
       try {
         await UserController.passwordCompare({
           reqPassword: password,
-          userPassword: req.user.password,
+          userPassword: user.password,
         });
       } catch (validationError) {
         if (validationError.status) {
@@ -292,7 +312,7 @@ class UserController {
       }
 
       await User.destroy({
-        where: { id: req.user.id },
+        where: { id: req.id },
       });
 
       res.status(204).send();
@@ -320,6 +340,10 @@ class UserController {
 
   static async patchAUserPassword(req: UserRequest, res: Response) {
     try {
+      let user = await User.findByPk(req.id);
+      if (!user) {
+        return res.status(404).json({ msg: "Utilisateur non trouvé." });
+      }
       const { password, lastPassword, confirmPassword } = req.body;
 
       try {
@@ -337,7 +361,7 @@ class UserController {
 
         await UserController.passwordCompare({
           reqPassword: lastPassword,
-          userPassword: req.user.password,
+          userPassword: user.password,
           notEmail: true,
         });
       } catch (validationError) {
@@ -352,7 +376,7 @@ class UserController {
           password: await bcrypt.hash(req.body.password, 10),
           modifiedAt: new Date(Date.now()),
         },
-        { where: { id: req.user.id } }
+        { where: { id: req.id } }
       );
 
       return res.status(204).send();
@@ -368,6 +392,10 @@ class UserController {
 **********************************************************/
   static async patchAUserEmail(req: UserRequest, res: Response) {
     try {
+      let user = await User.findByPk(req.id);
+      if (!user) {
+        return res.status(404).json({ msg: "Utilisateur non trouvé." });
+      }
       const { email, lastEmail, confirmEmail } = req.body;
 
       // Gestion des validations synchrones
@@ -376,7 +404,7 @@ class UserController {
           email,
           confirmEmail,
           lastEmail,
-          userEmail: req.user.email,
+          userEmail: user.email,
         });
         await UserController.existingEmail({ email });
         UserController.emailFormat({ email });
@@ -398,7 +426,7 @@ class UserController {
           email: email,
           modifiedAt: new Date(Date.now()),
         },
-        { where: { id: req.user.id } }
+        { where: { id: req.id } }
       );
 
       // Retourne un code 204 No Content si la mise à jour est réussie
@@ -441,7 +469,7 @@ class UserController {
           modifiedAt: new Date(Date.now()),
           birthday: birthday,
         },
-        { where: { id: req.user.id } }
+        { where: { id: req.id } }
       );
 
       res.status(204).send();

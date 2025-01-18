@@ -3,7 +3,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel";
 
 export interface UserRequest extends Request {
-  user?: User;
+  id?: User["id"];
+  role?: User["role"];
 }
 export class JwtMiddlewares {
   private token: string | undefined;
@@ -30,13 +31,20 @@ export class JwtMiddlewares {
         return res.status(401).json({ msg: "Accès interdit: token manquant" });
       }
       const payload = await this.verifyJWT();
-      req.user = payload as User;
+
+      const user = await User.findByPk(payload["id"]);
+
+      if (!user || !user.isEmailVerified) {
+        return res
+          .status(403)
+          .json({ msg: "Accès interdit: email non vérifié" });
+      }
+      req.id = payload["id"];
       next();
     } catch (error) {
       res.status(401).json({ msg: "Accès interdit: token invalide" });
     }
   }
-  // Middleware pour vérifier le rôle administrateur
   public async isAdmin(req: UserRequest, res: Response, next: NextFunction) {
     try {
       this.token = req.headers["authorization"] as string;
@@ -45,9 +53,9 @@ export class JwtMiddlewares {
       }
 
       const payload = await this.verifyJWT();
-      req.user = payload as User;
-
-      if (req.user && req.user.role && req.user.role === "admin") {
+      req.id = payload["id"];
+      req.role = payload["role"];
+      if (req.id && req.role && req.role === "admin") {
         next();
       } else {
         res
@@ -59,3 +67,12 @@ export class JwtMiddlewares {
     }
   }
 }
+
+// Génère un token de vérification pour l'utilisateur
+export const generateEmailVerificationToken = (userId: number): string => {
+  const payload = { id: userId };
+  const token = jwt.sign(payload, process.env.EMAIL_VERIFICATION_KEY!, {
+    expiresIn: "1d",
+  });
+  return token;
+};

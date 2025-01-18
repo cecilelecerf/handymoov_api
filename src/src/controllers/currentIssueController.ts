@@ -19,7 +19,7 @@ class CurrentIssueController {
       const issue = await Issue.findByPk(issue_id);
       if (!issue) return res.status(404).json({ msg: "L'issue n'existe pas." });
       await CurrentIssue.create({
-        user_id: req.user.id,
+        user_id: req.id,
         issue_id: req.body.issue_id,
         actif: req.body.actif,
       });

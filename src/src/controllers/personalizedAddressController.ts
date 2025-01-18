@@ -11,7 +11,7 @@ class PersonalizedAddressController {
   static async getAllPersonalizedAddress(req: UserRequest, res: Response) {
     try {
       const personalizedAddress = await PersonalizedAddress.findAll({
-        where: { user_id: req.user.id },
+        where: { user_id: req.id },
       });
       if (!personalizedAddress)
         return res.status(404).json({ msg: "Aucune adresse trouvée" });

@@ -21,7 +21,7 @@ class IssueController {
         gpsCoordinateLat: gpsCoordinateLat,
         gpsCoordinateLng: gpsCoordinateLng,
         actif: true,
-        user_id: req.user.id,
+        user_id: req.id,
       });
       return res.status(200).send();
     } catch (error) {
@@ -54,7 +54,7 @@ class IssueController {
   static async getAllIssuesUser(req: UserRequest, res: Response) {
     try {
       const test = await Issue.findAll();
-      const issues = await Issue.findAll({ where: { user_id: req.user.id } });
+      const issues = await Issue.findAll({ where: { user_id: req.id } });
       if (!issues || issues.length === 0)
         return res.status(404).json({ msg: "Aucune issues trouvés" });
 

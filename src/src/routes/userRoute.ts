@@ -4,9 +4,10 @@ const router = express.Router();
 import upload from "../middlewares/mulderMiddlewares";
 import UserController from "../controllers/userController";
 import { JwtMiddlewares } from "../middlewares/jwtMiddlewares";
+import { loginLimiter } from "../middlewares/rateMiddlewares";
 const jwtMiddlewares = new JwtMiddlewares();
 router.route("/register").post(UserController.registerAUser);
-router.route("/login").post(UserController.loginAUser);
+router.route("/login").post(loginLimiter, UserController.loginAUser);
 
 router
   .route("/")

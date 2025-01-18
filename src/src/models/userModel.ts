@@ -39,6 +39,9 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare profilePicture: string;
   declare password: string;
   declare role: string;
+  declare isEmailVerified: boolean;
+  public is2FAEnabled!: boolean;
+  public twoFASecret!: string | null;
 }
 
 User.init(
@@ -94,6 +97,18 @@ User.init(
       validate: {
         isIn: [["user", "admin"]],
       },
+    },
+    isEmailVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    is2FAEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    twoFASecret: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

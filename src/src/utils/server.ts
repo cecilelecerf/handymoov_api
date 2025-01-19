@@ -13,6 +13,7 @@ import fs from "fs";
 import specs from "../swagger/swagger_config";
 import cookieParser from "cookie-parser";
 import { securityHeadersMiddleware } from "../middlewares/securityMiddlewares";
+import { xssMiddlewares } from "../middlewares/xssMiddlewares";
 
 const createUploadsDirectory = () => {
   const directory = "uploads";
@@ -42,7 +43,7 @@ function createServer() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(cookieParser());
-
+  app.use(xssMiddlewares);
   const uploadsDirectory = path.resolve("/app/uploads");
 
   app.use("/uploads", express.static(uploadsDirectory));

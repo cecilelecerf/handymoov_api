@@ -1,5 +1,10 @@
 import supertest from "supertest";
-import { loginUser, registerAdminUser, registerUser } from "./usersConst";
+import {
+  loginAdminUser,
+  loginUser,
+  registerAdminUser,
+  registerUser,
+} from "./usersConst";
 import createServer from "../../utils/server";
 import User from "../../models/userModel";
 import { Op } from "sequelize";
@@ -11,12 +16,11 @@ describe("GET /users/all", () => {
     await User.destroy({ where: { email: { [Op.notLike]: "%test%" } } });
   });
   it("should return 200 and list of all users", async () => {
-    await supertest(app).post("/users/register").send(registerUser);
     await supertest(app).post("/users/register").send(registerAdminUser);
-    const adminLoginRes = await supertest(app).post("/users/login").send({
-      email: registerAdminUser["email"],
-      password: registerAdminUser["password"],
-    });
+    await supertest(app).post("/users/register").send(registerUser);
+    const adminLoginRes = await supertest(app)
+      .post("/users/login")
+      .send(loginAdminUser);
     const { statusCode, body } = await supertest(app)
       .get("/users/all")
       .set("authorization", adminLoginRes.body.token);

@@ -35,10 +35,16 @@ describe("PATCH PROFIL /users/updateProfil", () => {
             "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
         });
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["firstname"],
-        msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le prénom doit comporter entre 5 et 50 caractères.",
+          path: "firstname",
+          type: "field",
+          value:
+            "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
+        },
+      ]);
     });
 
     it("lastname < 5 character", async () => {
@@ -47,10 +53,15 @@ describe("PATCH PROFIL /users/updateProfil", () => {
         .set("authorization", token)
         .send({ ...registerUser, lastname: "123" });
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["lastname"],
-        msg: "Votre nom doit contenir entre 5 et 50 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le nom doit comporter entre 5 et 50 caractères.",
+          path: "lastname",
+          type: "field",
+          value: "123",
+        },
+      ]);
     });
 
     it("fistname < 5 character", async () => {
@@ -59,10 +70,15 @@ describe("PATCH PROFIL /users/updateProfil", () => {
         .set("authorization", token)
         .send({ ...registerUser, firstname: "123" });
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["firstname"],
-        msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le prénom doit comporter entre 5 et 50 caractères.",
+          path: "firstname",
+          type: "field",
+          value: "123",
+        },
+      ]);
     });
 
     it("lastname > 50 character", async () => {
@@ -75,10 +91,16 @@ describe("PATCH PROFIL /users/updateProfil", () => {
             "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
         });
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["lastname"],
-        msg: "Votre nom doit contenir entre 5 et 50 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le nom doit comporter entre 5 et 50 caractères.",
+          path: "lastname",
+          type: "field",
+          value:
+            "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
+        },
+      ]);
     });
   });
 
@@ -90,10 +112,15 @@ describe("PATCH PROFIL /users/updateProfil", () => {
         .send({ ...registerUser, birthday: "invalid-email" });
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["birthday"],
-        msg: "Le format de la date de naissance est invalide.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "La date de naissance doit être une date valide.",
+          path: "birthday",
+          type: "field",
+          value: "invalid-email",
+        },
+      ]);
     });
     it("if the user is under 18", async () => {
       const under18Birthday = new Date();
@@ -105,10 +132,17 @@ describe("PATCH PROFIL /users/updateProfil", () => {
         .send({ ...registerUser, birthday: under18Birthday.toISOString() });
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["birthday"],
-        msg: "Vous devez avoir plus de 18 ans.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "La date de naissance doit être une date valide.",
+          path: "birthday",
+          type: "field",
+          value: expect.stringMatching(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+          ),
+        },
+      ]);
     });
   });
 });

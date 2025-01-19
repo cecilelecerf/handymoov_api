@@ -5,58 +5,113 @@ import PersonalizedAddress from "../models/personalizedAddress";
 import { Request, Response } from "express";
 import User from "../models/userModel";
 import bcrypt from "bcryptjs";
+import { body, param, validationResult } from "express-validator";
+import { registerAdminUser } from "../__tests__/users/usersConst";
 
 class UserController {
   /**********************************************************
             MÉTHODE POUR ENREGISTRER UN UTILISATEUR
 **********************************************************/
+
   static async registerAUser(req: Request, res: Response) {
-    try {
-      const {
-        email,
-        firstname,
-        lastname,
-        password,
-        confirmPassword,
-        role,
-        birthday,
-        wheelchair,
-        cgu,
-      } = req.body;
-
-      try {
-        UserController.validateFirstname({ firstname, required: true });
-        UserController.validateLastname({ lastname, required: true });
-        UserController.emailExist({ email: email });
-        UserController.emailFormat({ email: email });
-        UserController.passwordExist({ password: password });
-        UserController.passwordFormat({ password: password });
-        UserController.validateBirthday({ birthday, required: true });
-        UserController.passwordUpdate({ password, confirmPassword });
-        UserController.validateRole(role);
-        UserController.validateCGU({ cgu });
-        await UserController.existingEmail({ email: email });
-      } catch (validationError) {
-        if (validationError.status) {
-          return res.status(validationError.status).json({
-            msg: validationError.msg,
-            param: validationError.param,
-          });
-        } else {
-          return res.status(400).json({
-            msg: validationError.msg,
-            param: validationError.param,
-          });
+    // Validation des entrées via express-validator
+    await body("email")
+      .escape()
+      .trim()
+      .isEmail()
+      .withMessage("Email invalide")
+      .bail()
+      .custom(async (email) => {
+        const user = await User.findOne({ where: { email } });
+        if (user) {
+          throw new Error("Email déjà utilisé");
         }
-      }
+        const localPart = email.split("@")[0];
+        if (localPart.length > 40) {
+          throw new Error("La partie avant le '@' de l'email est trop longue.");
+        }
+      })
+      .run(req);
 
+    await body("firstname")
+      .escape()
+      .trim()
+      .notEmpty()
+      .withMessage("Le prénom est requis")
+      .run(req);
+
+    await body("lastname")
+      .escape()
+      .trim()
+      .notEmpty()
+      .withMessage("Le nom est requis")
+      .run(req);
+
+    await body("password")
+      .escape()
+      .trim()
+      .isLength({ min: 7 })
+      .withMessage("Le mot de passe doit contenir au moins 7 caractères")
+      .bail()
+      .matches(/[A-Z]/)
+      .withMessage(
+        "Le mot de passe doit contenir au moins une lettre majuscule"
+      )
+      .custom(async (password) => {
+        if (password < 7) {
+          throw new Error(
+            "Le mot de passe doit contenir au moins 7 caractères"
+          );
+        }
+      })
+      .run(req);
+
+    await body("confirmPassword")
+      .escape()
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error("Les mots de passe ne correspondent pas");
+        }
+        return true;
+      })
+      .run(req);
+
+    await body("birthday")
+      .escape()
+      .trim()
+      .notEmpty()
+      .withMessage("La date de naissance est requise")
+      .isDate()
+      .withMessage("Date de naissance invalide")
+      .run(req);
+
+    await body("cgu")
+      .equals("true")
+      .withMessage("Vous devez accepter les CGU")
+      .run(req);
+
+    await body("role")
+      .optional()
+      .isIn(["admin", "user"])
+      .withMessage("Rôle invalide")
+      .run(req);
+    // Vérification des erreurs de validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, firstname, lastname, password, birthday, wheelchair } =
+      req.body;
+    try {
       let user: User;
-      if (email === "admin@handymoov.com") {
+      if (email === registerAdminUser.email) {
         user = await User.create({
           firstname,
           lastname,
           birthday: new Date(birthday),
-          password,
+          password: password,
           email,
           role: "admin",
           wheelchair,
@@ -66,21 +121,23 @@ class UserController {
           firstname,
           lastname,
           birthday: new Date(birthday),
-          password,
+          password: password,
           email,
           role: "user",
           wheelchair,
         });
       }
+      // Création des adresses par défaut pour l'utilisateur
       await Promise.all(
         ["Maison", "Travail"].map(async (value) => {
           await PersonalizedAddress.create({ label: value, user_id: user.id });
         })
       );
+
       res.status(204).send();
     } catch (error) {
       res.status(500).json({
-        msg: "Erreur lors du traitement des données.",
+        msg: `Erreur lors du traitement des données.${error}`,
       });
     }
   }
@@ -90,18 +147,31 @@ class UserController {
 **********************************************************/
 
   static async loginAUser(req: Request, res: Response) {
+    await body("email")
+      .isEmail()
+      .withMessage("Email invalide")
+      .custom(async (email) => {
+        const user = await User.findOne({ where: { email: email } });
+        if (!user) {
+          throw new Error("Email ou mot de passe incorrect");
+        }
+        return true;
+      })
+      .run(req);
+
+    await body("password")
+      .escape()
+      .trim()
+      .notEmpty()
+      .withMessage("Le mot de passe est requis")
+      .run(req);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { email, password } = req.body;
+
     try {
-      const { email, password } = req.body;
-      try {
-        UserController.passwordExist({ password: password });
-        UserController.emailExist({ email: email });
-      } catch (validationError) {
-        if (validationError.status)
-          return res
-            .status(validationError.status)
-            .json({ msg: validationError.msg, param: validationError.param });
-        else return res.status(400).json(validationError);
-      }
       const user = await User.findOne({ where: { email: email } });
       if (!user) {
         return res.status(404).json({
@@ -109,34 +179,30 @@ class UserController {
           msg: "Email ou mot de passe incorrect.",
         });
       }
-      try {
-        await UserController.passwordCompare({
-          reqPassword: password,
-          userPassword: user.password,
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({
+          param: ["password"],
+          msg: "Email ou mot de passe incorrect.",
         });
-      } catch (validationError) {
-        if (validationError.status) {
-          return res
-            .status(validationError.status)
-            .json({ msg: validationError.msg, param: validationError.param });
-        } else return res.status(400).json(validationError);
       }
+      // Si la 2FA est activée, demander à l'utilisateur de la vérifier
       if (user.is2FAEnabled) {
-        // Ne pas retourner de token tant que la 2FA n'est pas vérifiée
         return res.status(200).json({
           msg: "2FA requise",
           is2FAEnabled: true,
         });
       }
 
+      // Création du token JWT et refresh token
       const userData = {
         id: user.id,
         role: user.role,
       };
-
       const token = jwt.sign(userData, process.env.JWT_KEY, {
         expiresIn: "15m",
       });
+
       const refreshToken = jwt.sign(
         { id: user.id },
         process.env.JWT_REFRESH_KEY,
@@ -179,76 +245,105 @@ class UserController {
 **********************************************************/
 
   static async patchAUser(req: UserRequest, res: Response) {
+    // Validation des champs
+    await body("email")
+      .escape()
+      .trim()
+      .optional()
+      .isEmail()
+      .withMessage("Format d'email invalide.")
+      .run(req);
+
+    await body("confirmEmail")
+      .escape()
+      .trim()
+      .optional()
+      .custom((value, { req }) => {
+        if (value && value !== req.body.email) {
+          throw new Error("Les emails ne correspondent pas.");
+        }
+        return true;
+      })
+      .run(req);
+
+    await body("firstname")
+      .escape()
+      .trim()
+      .optional()
+      .isLength({ min: 2 })
+      .withMessage("Le prénom doit avoir au moins 2 caractères.")
+      .run(req);
+
+    await body("lastname")
+      .escape()
+      .trim()
+      .optional()
+      .isLength({ min: 2 })
+      .withMessage("Le nom de famille doit avoir au moins 2 caractères.")
+      .run(req);
+
+    await body("birthday")
+      .optional()
+      .isDate()
+      .withMessage("La date de naissance doit être au format valide.")
+      .run(req);
+
+    await body("password")
+      .escape()
+      .trim()
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage("Le mot de passe doit comporter au moins 6 caractères.")
+      .run(req);
+
+    await body("confirmPassword")
+      .escape()
+      .trim()
+      .optional()
+      .custom((value, { req }) => {
+        if (value && value !== req.body.password) {
+          throw new Error("Les mots de passe ne correspondent pas.");
+        }
+        return true;
+      })
+      .run(req);
+
+    await body("lastPassword")
+      .escape()
+      .trim()
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage(
+        "L'ancien mot de passe doit comporter au moins 6 caractères."
+      )
+      .run(req);
+
+    // Vérification des erreurs de validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
       let user = await User.findByPk(req.id);
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
       }
-      const {
-        email,
-        confirmEmail,
-        lastEmail,
-        firstname,
-        lastname,
-        password,
-        lastPassword,
-        confirmPassword,
-        birthday,
-      } = req.body;
 
-      try {
-        if (email || confirmEmail || lastEmail) {
-          UserController.emailExist({ email: email });
-          UserController.emailUpdate({
-            email,
-            confirmEmail,
-            lastEmail,
-            userEmail: user.email,
-          });
-          UserController.emailFormat({ email });
-        }
-        if (firstname) {
-          UserController.validateFirstname({ firstname, required: false });
-        }
-        if (lastname) {
-          UserController.validateLastname({ lastname, required: false });
-        }
-        if (birthday) {
-          UserController.validateBirthday({ birthday, required: false });
-        }
-        if (password || lastPassword || confirmPassword) {
-          UserController.passwordExist({ password });
-          UserController.passwordFormat({ password });
-          UserController.passwordUpdate({
-            password,
-            confirmPassword,
-            lastPassword,
-          });
-          await UserController.passwordCompare({
-            reqPassword: lastPassword,
-            userPassword: user.password,
-          });
-        }
-      } catch (validationError) {
-        if (validationError.status)
-          return res
-            .status(validationError.status)
-            .json({ msg: validationError.msg, param: validationError.param });
-        else return res.status(400).json(validationError);
-      }
+      const { email, firstname, lastname, password, birthday, picture } =
+        req.body;
+
       const UserRequest = await User.findOne({ where: { id: user.id } });
       await user.update({
-        email: req.body.email ? req.body.email : user.email,
-        firstname: req.body.firstname ? req.body.firstname : user.firstname,
-        lastname: req.body.lastname ? req.body.lastname : user.lastname,
-        password: req.body.password
-          ? await bcrypt.hash(req.body.password, 10)
+        email: email && user.email,
+        firstname: firstname && user.firstname,
+        lastname: lastname && user.lastname,
+        password: password
+          ? await bcrypt.hash(password, 10)
           : UserRequest.password,
         modifiedAt: new Date(Date.now()),
-        birthday: req.body.birthday ? req.body.birthday : UserRequest.birthday,
-        profilePicture: req.body.picture
-          ? req.body.picture
-          : UserRequest.profilePicture,
+        birthday: birthday && UserRequest.birthday,
+        profilePicture: picture && UserRequest.profilePicture,
       });
 
       res.status(204).send();
@@ -256,19 +351,38 @@ class UserController {
       res.status(500).json({ msg: "Erreur lors du traitement des données." });
     }
   }
-
   /**********************************************************
             MÉTHODE POUR MODIFIER UNE PHOTO DE PROFIL
 **********************************************************/
 
   static async putAProfilePictureUser(req: UserRequest, res: Response) {
+    // Validation de la photo de profil (vérification du type de fichier)
+    await body("file")
+      .custom((value, { req }) => {
+        if (!req.file) {
+          throw new Error("Aucune photo de profil fournie.");
+        }
+        const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
+        if (!validImageTypes.includes(req.file.mimetype)) {
+          throw new Error("Le fichier doit être une image (JPEG, PNG ou GIF).");
+        }
+        return true;
+      })
+      .run(req);
+
+    // Vérification des erreurs de validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     try {
       let user = await User.findByPk(req.id);
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
       }
 
-      // Vérifier si une photo de profil est fournie dans la requête
+      // Récupérer le chemin de la photo de profil
       const profilePicture = req.file.path;
 
       // Mettre à jour la photo de profil de l'utilisateur
@@ -285,13 +399,32 @@ class UserController {
 **********************************************************/
 
   static async deleteAUser(req: UserRequest, res: Response) {
-    let user = await User.findByPk(req.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Utilisateur non trouvé." });
+    // Validation de la présence du mot de passe
+    await body("password")
+      .escape()
+      .trim()
+      .exists()
+      .withMessage("Le mot de passe est requis.")
+      .notEmpty()
+      .withMessage("Le mot de passe ne peut pas être vide.")
+      .run(req);
+
+    // Vérification des erreurs de validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+
     try {
+      let user = await User.findByPk(req.id);
+      if (!user) {
+        return res.status(404).json({ msg: "Utilisateur non trouvé." });
+      }
+
       const { password } = req.body;
+
       try {
+        // Comparer le mot de passe fourni avec le mot de passe de l'utilisateur
         await UserController.passwordCompare({
           reqPassword: password,
           userPassword: user.password,
@@ -310,6 +443,7 @@ class UserController {
         }
       }
 
+      // Supprimer l'utilisateur
       await User.destroy({
         where: { id: req.id },
       });
@@ -343,36 +477,51 @@ class UserController {
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
       }
-      const { password, lastPassword, confirmPassword } = req.body;
 
-      try {
-        UserController.passwordExist({
-          password,
-          lastPasswordRequired: true,
-          lastPassword,
-        });
-        UserController.passwordUpdate({
-          password,
-          confirmPassword,
-          lastPassword,
-        });
-        UserController.passwordFormat({ password });
+      const { password } = req.body;
+      await body("password")
+        .escape()
+        .trim()
+        .isLength({ min: 8 })
+        .withMessage("Le mot de passe doit contenir au moins 8 caractères.")
+        .matches(/\d/)
+        .withMessage("Le mot de passe doit contenir au moins un chiffre.")
+        .matches(/[a-zA-Z]/)
+        .withMessage("Le mot de passe doit contenir au moins une lettre.")
+        .matches(/[A-Z]/) // Vérifie la présence d'au moins une lettre majuscule
+        .withMessage(
+          "Le mot de passe doit contenir au moins une lettre majuscule"
+        )
+        .matches(/[a-z]/) // Vérifie la présence d'au moins une lettre minuscule
+        .withMessage(
+          "Le mot de passe doit contenir au moins une lettre minuscule"
+        )
+        .matches(/[\W_]/) // Vérifie la présence d'au moins un caractère spécial
+        .withMessage(
+          "Le mot de passe doit contenir au moins un caractère spécial"
+        )
 
-        await UserController.passwordCompare({
-          reqPassword: lastPassword,
-          userPassword: user.password,
-          notEmail: true,
-        });
-      } catch (validationError) {
-        if (validationError.status)
-          return res
-            .status(validationError.status)
-            .json({ msg: validationError.msg, param: validationError.param });
-        else return res.status(400).json(validationError);
+        .run(req);
+
+      await body("confirmPassword")
+        .escape()
+        .trim()
+        .custom(async (value, { req }) => {
+          if (value !== req.body.password)
+            throw new Error("Les mots de passe ne correspondent pas.");
+        })
+        .withMessage("Les mots de passe ne correspondent pas.")
+        .run(req);
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
       }
+
+      // Mise à jour du mot de passe
       await User.update(
         {
-          password: await bcrypt.hash(req.body.password, 10),
+          password: await bcrypt.hash(password, 10),
           modifiedAt: new Date(Date.now()),
         },
         { where: { id: req.id } }
@@ -395,28 +544,64 @@ class UserController {
       if (!user) {
         return res.status(404).json({ msg: "Utilisateur non trouvé." });
       }
-      const { email, lastEmail, confirmEmail } = req.body;
 
-      // Gestion des validations synchrones
-      try {
-        UserController.emailUpdate({
-          email,
-          confirmEmail,
-          lastEmail,
-          userEmail: user.email,
-        });
-        await UserController.existingEmail({ email });
-        UserController.emailFormat({ email });
-      } catch (validationError) {
-        // Vérification et retour des erreurs de validation
-        if (validationError.status) {
-          return res.status(validationError.status).json({
-            msg: validationError.msg,
-            param: validationError.param,
-          });
-        } else {
-          return res.status(400).json(validationError);
-        }
+      const { email, lastEmail, confirmEmail } = req.body;
+      // Validation de l'email et des champs associés
+      await body("email")
+        .escape()
+        .trim()
+        .isEmail()
+        .notEmpty()
+        .withMessage("L'email n'est pas valide.")
+        .isLength({ min: 5, max: 70 })
+        .withMessage("L'email doit faire entre 5 et 70 caractères.")
+        .custom(async (value, { req }) => {
+          const user = await User.findOne({ where: { email: value } });
+          if (user) {
+            throw new Error("Email déjà utilisé");
+          }
+          if (value === lastEmail) {
+            throw new Error(
+              "L'email ne doit pas être identique à l'email précédent."
+            );
+          }
+          const [before, after] = value.split("@");
+          if (before.length > 40) {
+            throw new Error(
+              "La partie avant le '@' de l'email est trop longue."
+            );
+          }
+          if (after.length > 40) {
+            throw new Error(
+              "La partie après le '@' de l'email est trop longue."
+            );
+          }
+        })
+        .run(req);
+
+      await body("confirmEmail")
+        .escape()
+        .trim()
+        .notEmpty()
+        .withMessage("La confirmation d'email n'est pas valide.")
+        .custom(async (value, { req }) => {
+          if (value !== email) {
+            throw new Error("Les emails ne correspondent pas.");
+          }
+        })
+        .run(req);
+
+      await body("lastEmail")
+        .escape()
+        .trim()
+        .notEmpty()
+        .withMessage("L'ancien email est requis.")
+        .run(req);
+
+      // Vérification des erreurs de validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
       }
 
       // Mise à jour de l'email de l'utilisateur
@@ -431,7 +616,7 @@ class UserController {
       // Retourne un code 204 No Content si la mise à jour est réussie
       res.status(204).send();
     } catch (error) {
-      // Gestion des erreurs
+      // Gestion des erreurs serveur
       res.status(500).json({ msg: "Erreur lors du traitement des données." });
     }
   }
@@ -444,29 +629,48 @@ class UserController {
     try {
       const { firstname, lastname, birthday } = req.body;
 
-      try {
-        if (firstname) {
-          UserController.validateFirstname({ firstname, required: false });
-        }
-        if (lastname) {
-          UserController.validateLastname({ lastname, required: false });
-        }
-        if (birthday) {
-          UserController.validateBirthday({ birthday, required: false });
-        }
-      } catch (validationError) {
-        if (validationError.status)
-          return res
-            .status(validationError.status)
-            .json({ msg: validationError.msg, param: validationError.param });
-        else return res.status(400).json(validationError);
+      // Validation des champs firstname, lastname et birthday
+      if (firstname) {
+        await body("firstname")
+          .escape()
+          .trim()
+          .optional()
+          .isLength({ min: 5, max: 49 })
+          .withMessage("Le prénom doit comporter entre 5 et 50 caractères.")
+          .run(req);
       }
+
+      if (lastname) {
+        await body("lastname")
+          .escape()
+          .trim()
+          .optional()
+          .isLength({ min: 5, max: 49 })
+          .withMessage("Le nom doit comporter entre 5 et 50 caractères.")
+          .run(req);
+      }
+
+      if (birthday) {
+        await body("birthday")
+          .optional()
+          .isDate()
+          .withMessage("La date de naissance doit être une date valide.")
+          .run(req);
+      }
+
+      // Vérification des erreurs de validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Mise à jour des informations de l'utilisateur
       await User.update(
         {
-          firstname: firstname,
-          lastname: lastname,
+          firstname: firstname ? firstname : undefined,
+          lastname: lastname ? lastname : undefined,
           modifiedAt: new Date(Date.now()),
-          birthday: birthday,
+          birthday: birthday ? birthday : undefined,
         },
         { where: { id: req.id } }
       );
@@ -477,186 +681,6 @@ class UserController {
     }
   }
 
-  static validateFirstname({
-    firstname,
-    required = true,
-  }: {
-    firstname: string;
-    required?: boolean;
-  }) {
-    if (!firstname && required) {
-      throw { param: ["firstname"], msg: "Votre prénom est obligatoire." };
-    }
-
-    if (firstname.length < 5 || firstname.length > 50) {
-      throw {
-        param: ["firstname"],
-        msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
-      };
-    }
-  }
-
-  static validateLastname({
-    lastname,
-    required = true,
-  }: {
-    lastname: string;
-    required?: boolean;
-  }) {
-    if (!lastname && required) {
-      throw { param: ["lastname"], msg: "Votre nom est obligatoire." };
-    }
-
-    if (lastname.length < 5 || lastname.length > 50) {
-      throw {
-        param: ["lastname"],
-        msg: "Votre nom doit contenir entre 5 et 50 caractères.",
-      };
-    }
-  }
-
-  static validateBirthday({
-    birthday,
-    required,
-  }: {
-    birthday: string;
-    required?: boolean;
-  }) {
-    if (!birthday && required) {
-      throw {
-        param: ["birthday"],
-        msg: "Votre date de naissance est obligatoire.",
-      };
-    }
-    const birthDate = new Date(birthday);
-    if (isNaN(birthDate.getTime())) {
-      throw {
-        param: ["birthday"],
-        msg: "Le format de la date de naissance est invalide.",
-      };
-    }
-    const isOver18 = () => {
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDifference = today.getMonth() - birthDate.getMonth();
-
-      if (
-        monthDifference < 0 ||
-        (monthDifference === 0 && today.getDate() < birthDate.getDate())
-      ) {
-        age--;
-      }
-      return age >= 18;
-    };
-
-    if (!isOver18()) {
-      throw {
-        param: ["birthday"],
-        msg: "Vous devez avoir plus de 18 ans.",
-      };
-    }
-  }
-
-  static validateRole(role: string) {
-    if (role === "admin") {
-      throw {
-        param: ["role"],
-        msg: "Vous ne pouvez pas créer un utilisateur avec le rôle admin.",
-      };
-    }
-  }
-
-  static validateCGU({ cgu }: { cgu: boolean }) {
-    if (!cgu)
-      throw {
-        param: ["cgu"],
-        msg: "Les conditions générales d'utilisation sont obligatoires.",
-      };
-  }
-
-  static passwordExist({
-    password,
-    lastPassword,
-    lastPasswordRequired,
-  }: {
-    password: string;
-    lastPassword?: string;
-    lastPasswordRequired?: boolean;
-  }) {
-    if (!lastPassword && lastPasswordRequired)
-      throw {
-        param: ["lastPassword"],
-        msg: "L'ancien mot de passe est obligatoire.",
-        status: 400,
-      };
-    if (!password) {
-      throw { param: ["password"], msg: "Le mot de passe est obligatoire." };
-    }
-  }
-
-  static passwordFormat({ password }: { password: string }) {
-    if (password.length < 7)
-      throw {
-        param: ["password"],
-        msg: "Le mot de passe doit comporter plus de 7 caractères.",
-      };
-    const hasUpperCase = /[A-Z]/.test(password);
-    if (!hasUpperCase) {
-      throw {
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins une majuscule.",
-      };
-    }
-
-    const hasLowerCase = /[a-z]/.test(password);
-    if (!hasLowerCase) {
-      throw {
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins une minuscule.",
-      };
-    }
-
-    const hasNumber = /[0-9]/.test(password);
-    if (!hasNumber) {
-      throw {
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins un chiffre.",
-      };
-    }
-
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    if (!hasSpecialChar) {
-      throw {
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins un caractère spécial.",
-      };
-    }
-  }
-
-  static passwordUpdate({
-    password,
-    confirmPassword,
-    lastPassword,
-  }: {
-    password: string;
-    confirmPassword: string;
-    lastPassword?: string;
-  }) {
-    if (password !== confirmPassword) {
-      throw {
-        param: ["confirmPassword"],
-        msg: "Les mots de passe ne sont pas identiques.",
-        status: 409,
-      };
-    }
-    if (lastPassword) {
-      if (lastPassword === password)
-        throw {
-          param: ["password"],
-          msg: "Le mot de passe est identique à l’ancien mot de passe",
-        };
-    }
-  }
   static async passwordCompare({
     reqPassword,
     userPassword,
@@ -679,96 +703,6 @@ class UserController {
         status: 404,
       };
     } else return validPassword;
-  }
-
-  static async existingEmail({ email }: { email: string }) {
-    const existingEmail = await User.findOne({ where: { email: email } });
-    if (existingEmail) {
-      throw { param: ["email"], msg: "Cet email existe déjà.", status: 409 };
-    }
-  }
-  static emailExist = ({ email }: { email: string }) => {
-    if (!email) {
-      throw {
-        param: ["email"],
-        msg: "Votre email est obligatoire.",
-      };
-    }
-  };
-  static emailFormat({ email }: { email: string }) {
-    if (email.length < 5 || email.length > 70) {
-      throw {
-        param: ["email"],
-        msg: "Votre email doit contenir entre 5 et 70 caractères.",
-      };
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw { param: ["email"], msg: "Le format de l'email est invalide." };
-    }
-
-    const [localPart, domainPart] = email.split("@");
-    if (localPart.length < 1 || localPart.length > 40) {
-      throw {
-        param: ["email"],
-        msg: "La partie avant l’arobase doit contenir entre 1 et 40 caractères.",
-      };
-    }
-
-    if (domainPart.length < 4 || domainPart.length > 40) {
-      throw {
-        param: ["email"],
-        msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
-      };
-    }
-  }
-  static emailUpdate({
-    email,
-    confirmEmail,
-    lastEmail,
-    userEmail,
-  }: {
-    email: string;
-    confirmEmail: string;
-    lastEmail: string;
-    userEmail: string;
-  }) {
-    if (!lastEmail) {
-      throw {
-        param: ["lastEmail"],
-        msg: "L'ancien email est obligatoire.",
-      };
-    }
-    if (!email) {
-      throw {
-        param: ["email"],
-        msg: "L'email est obligatoire.",
-      };
-    }
-    if (!confirmEmail) {
-      throw {
-        param: ["confirmEmail"],
-        msg: "La confirmation d'email est obligatoire.",
-      };
-    }
-    if (userEmail !== lastEmail)
-      throw {
-        param: ["lastEmail"],
-        msg: "Email incorrect.",
-      };
-    if (email !== confirmEmail) {
-      throw {
-        param: ["confirmEmail"],
-        msg: "Les emails ne sont pas identiques.",
-        status: 409,
-      };
-    }
-    if (email === lastEmail)
-      throw {
-        param: ["email"],
-        msg: "Le nouvel email est similaire à celui déjà enregistré.",
-      };
   }
 }
 export default UserController;

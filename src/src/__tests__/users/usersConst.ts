@@ -55,7 +55,7 @@ export const registerAdminUser: RegisterUserProps = {
   password: user["password"],
   confirmPassword: user["password"],
   birthday: user["birthday"],
-  wheelchair: false,
+  wheelchair: user["wheelchair"],
   cgu: true,
 };
 export const loginAdminUser: LoginUserProps = {

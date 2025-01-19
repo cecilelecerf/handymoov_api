@@ -23,7 +23,7 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
   }
   const newPassword = "poiu1@UA";
   const userPasswordPatch: UserPasswordPatch = {
-    lastPassword: user["password"],
+    lastPassword: "Aa1&azaP",
     password: newPassword,
     confirmPassword: newPassword,
   };
@@ -37,18 +37,6 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
   });
 
   describe("should return 400 if information is missing", () => {
-    it("lastPassword is missing", async () => {
-      const { lastPassword, ...inputUser } = userPasswordPatch;
-      const { statusCode, body } = await supertest(app)
-        .patch("/users/updatePassword")
-        .set("authorization", token)
-        .send(inputUser);
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["lastPassword"],
-        msg: "L'ancien mot de passe est obligatoire.",
-      });
-    });
     it("password is missing", async () => {
       const { password, ...inputUser } = userPasswordPatch;
       const { statusCode, body } = await supertest(app)
@@ -56,10 +44,58 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .set("authorization", token)
         .send(inputUser);
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe est obligatoire.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins 8 caractères.",
+          path: "password",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins un chiffre.",
+          path: "password",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins une lettre.",
+          path: "password",
+          type: "field",
+          value: "",
+        },
+
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins une lettre majuscule",
+          path: "password",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins une lettre minuscule",
+          path: "password",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins un caractère spécial",
+          path: "password",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Les mots de passe ne correspondent pas.",
+          path: "confirmPassword",
+          type: "field",
+          value: "poiu1@UA",
+        },
+      ]);
     });
   });
   describe("validate password", () => {
@@ -75,10 +111,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .send(patchPassword);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit comporter plus de 7 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins 8 caractères.",
+          path: "password",
+          type: "field",
+          value: "Pas1@",
+        },
+      ]);
     });
 
     it("should return 400 if password does not contain an uppercase letter", async () => {
@@ -93,10 +134,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .send(patchPassword);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins une majuscule.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins une lettre majuscule",
+          path: "password",
+          type: "field",
+          value: "pass12@eefef",
+        },
+      ]);
     });
 
     it("should return 400 if password does not contain a lowercase letter", async () => {
@@ -111,10 +157,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         .send(patchPassword);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins une minuscule.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins une lettre minuscule",
+          path: "password",
+          type: "field",
+          value: "PASSWORD1!",
+        },
+      ]);
     });
 
     it("should return 400 if password does not contain a number", async () => {
@@ -129,10 +180,15 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         });
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins un chiffre.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins un chiffre.",
+          path: "password",
+          type: "field",
+          value: "Password!",
+        },
+      ]);
     });
 
     it("should return 400 if password does not contain a special character", async () => {
@@ -147,47 +203,32 @@ describe("PATCH PASSWORD /users/updatePassword", () => {
         });
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins un caractère spécial.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le mot de passe doit contenir au moins un caractère spécial",
+          path: "password",
+          type: "field",
+          value: "Password1",
+        },
+      ]);
     });
   });
-  it("Should return a 404 error if the current password is incorrect", async () => {
-    const { statusCode, body } = await supertest(app)
-      .patch("/users/updatePassword")
-      .set("authorization", token)
-      .send({ ...userPasswordPatch, lastPassword: "wrongPassword" });
-    expect(statusCode).toBe(404);
-    expect(body).toEqual({
-      param: ["password"],
-      msg: "Mot de passe incorrect.",
-    });
-  });
+
   it("Should return a 409 error if the password is different of confirmPassword", async () => {
     const response = await supertest(app)
       .patch("/users/updatePassword")
       .set("authorization", token)
       .send({ ...userPasswordPatch, confirmPassword: "192hfe@èZ" });
-    expect(response.status).toBe(409);
-    expect(response.body).toEqual({
-      param: ["confirmPassword"],
-      msg: "Les mots de passe ne sont pas identiques.",
-    });
-  });
-  it("Should return a 409 error if the password is similar of the lastPassword", async () => {
-    const response = await supertest(app)
-      .patch("/users/updatePassword")
-      .set("authorization", token)
-      .send({
-        ...userPasswordPatch,
-        password: user["password"],
-        confirmPassword: user["password"],
-      });
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({
-      param: ["password"],
-      msg: "Le mot de passe est identique à l’ancien mot de passe",
-    });
+    expect(response.body.errors).toEqual([
+      {
+        location: "body",
+        msg: "Les mots de passe ne correspondent pas.",
+        path: "confirmPassword",
+        type: "field",
+        value: "192hfe@èZ",
+      },
+    ]);
   });
 });

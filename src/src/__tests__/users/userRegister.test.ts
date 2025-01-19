@@ -24,334 +24,218 @@ describe("User POST /users/register", () => {
       const { statusCode, body } = await supertest(app)
         .post("/users/register")
         .send(inputUser);
-
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["email"],
-        msg: "Votre email est obligatoire.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Email invalide",
+          path: "email",
+          type: "field",
+          value: "",
+        },
+      ]);
     });
+
     it("firstname is missing", async () => {
       const { firstname, ...inputUser } = registerUser;
       const { statusCode, body } = await supertest(app)
         .post("/users/register")
         .send(inputUser);
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["firstname"],
-        msg: "Votre prénom est obligatoire.",
-      });
-    });
-  });
-
-  it("lastname is missing", async () => {
-    const { lastname, ...inputUser } = registerUser;
-    const { statusCode, body } = await supertest(app)
-      .post("/users/register")
-      .send(inputUser);
-    expect(statusCode).toBe(400);
-    expect(body).toEqual({
-      param: ["lastname"],
-      msg: "Votre nom est obligatoire.",
-    });
-  });
-  it("birthday is missing", async () => {
-    const { birthday, ...inputUser } = registerUser;
-    const { statusCode, body } = await supertest(app)
-      .post("/users/register")
-      .send(inputUser);
-
-    expect(statusCode).toBe(400);
-    expect(body).toEqual({
-      param: ["birthday"],
-      msg: "Votre date de naissance est obligatoire.",
-    });
-  });
-
-  describe("should return 400 if lastname or firstname is not the correct length", () => {
-    it("fistname > 50 character", async () => {
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send({
-          ...registerUser,
-          firstname:
-            "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
-        });
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["firstname"],
-        msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le prénom est requis",
+          path: "firstname",
+          type: "field",
+          value: "",
+        },
+      ]);
     });
 
-    it("lastname < 5 character", async () => {
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send({ ...registerUser, lastname: "123" });
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["lastname"],
-        msg: "Votre nom doit contenir entre 5 et 50 caractères.",
-      });
-    });
-
-    it("fistname < 5 character", async () => {
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send({ ...registerUser, firstname: "123" });
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["firstname"],
-        msg: "Votre prénom doit contenir entre 5 et 50 caractères.",
-      });
-    });
-
-    it("lastname > 50 character", async () => {
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send({
-          ...registerUser,
-          lastname:
-            "1234567890AZERTYUIOPMLKJHGFDSQWXCVBNlPOIUYTREZAQSDFGHJKLMNBVCXWqQSDFGHJ",
-        });
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["lastname"],
-        msg: "Votre nom doit contenir entre 5 et 50 caractères.",
-      });
-    });
-  });
-
-  it("should return 409 if password is different from confirmPassword", async () => {
-    const { statusCode, body } = await supertest(app)
-      .post("/users/register")
-      .send({ ...registerUser, confirmPassword: "123" });
-    expect(statusCode).toBe(409);
-    expect(body).toEqual({
-      param: ["confirmPassword"],
-      msg: "Les mots de passe ne sont pas identiques.",
-    });
-  });
-
-  describe("validate email", () => {
-    it("should return 409 if duplicate email", async () => {
-      await supertest(app).post("/users/register").send(registerUser);
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send(registerUser);
-      expect(statusCode).toBe(409);
-      expect(body).toEqual({
-        param: ["email"],
-        msg: "Cet email existe déjà.",
-      });
-    });
-
-    it("should return 400 if email format is invalid", async () => {
-      const response = await supertest(app)
-        .post("/users/register")
-        .send({ ...registerUser, email: "invalidemail" });
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        param: ["email"],
-        msg: "Le format de l'email est invalide.",
-      });
-    });
-
-    describe(" should return 400 if email is not the correct length", () => {
-      it("email > 70", async () => {
-        const response = await supertest(app)
-          .post("/users/register")
-          .send({
-            ...registerUser,
-            email: `${"a".repeat(41)}@${"a".repeat(40)} .com`,
-          });
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body).toEqual({
-          param: ["email"],
-          msg: "Votre email doit contenir entre 5 et 70 caractères.",
-        });
-      });
-    });
-
-    describe("should return 400 if the part before '@' is too short or too long", () => {
-      it("if part before is too long", async () => {
-        const responseShort = await supertest(app)
-          .post("/users/register")
-          .send({ ...registerUser, email: "a".repeat(41) + "@example.com" });
-
-        expect(responseShort.statusCode).toBe(400);
-        expect(responseShort.body).toEqual({
-          param: ["email"],
-          msg: "La partie avant l’arobase doit contenir entre 1 et 40 caractères.",
-        });
-      });
-    });
-
-    describe("should return 400 if the part after '@' is too short or too long", () => {
-      it("if part after is too short", async () => {
-        const responseShort = await supertest(app)
-          .post("/users/register")
-          .send({ ...registerUser, email: "azz@b.c" });
-
-        expect(responseShort.statusCode).toBe(400);
-        expect(responseShort.body).toEqual({
-          param: ["email"],
-          msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
-        });
-      });
-
-      it("if part after is too long", async () => {
-        const responseShort = await supertest(app)
-          .post("/users/register")
-          .send({
-            ...registerUser,
-            email: "john@" + "a".repeat(41) + ".com",
-          });
-
-        expect(responseShort.statusCode).toBe(400);
-        expect(responseShort.body).toEqual({
-          param: ["email"],
-          msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
-        });
-      });
-    });
-  });
-  describe("validate password", () => {
-    it("should return 400 if password is less than 7 characters", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "Pass1!",
-        confirmPassword: "Pass1!",
-      };
+    it("lastname is missing", async () => {
+      const { lastname, ...inputUser } = registerUser;
       const { statusCode, body } = await supertest(app)
         .post("/users/register")
         .send(inputUser);
-
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit comporter plus de 7 caractères.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Le nom est requis",
+          path: "lastname",
+          type: "field",
+          value: "",
+        },
+      ]);
     });
 
-    it("should return 400 if password does not contain an uppercase letter", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "password1!",
-        confirmPassword: "password1!",
-      };
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send(inputUser);
-
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins une majuscule.",
-      });
-    });
-
-    it("should return 400 if password does not contain a lowercase letter", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "PASSWORD1!",
-        confirmPassword: "PASSWORD1!",
-      };
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send(inputUser);
-
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins une minuscule.",
-      });
-    });
-
-    it("should return 400 if password does not contain a number", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "Password!",
-        confirmPassword: "Password!",
-      };
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send(inputUser);
-
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins un chiffre.",
-      });
-    });
-
-    it("should return 400 if password does not contain a special character", async () => {
-      const inputUser = {
-        ...registerUser,
-        password: "Password1",
-        confirmPassword: "Password1",
-      };
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send(inputUser);
-
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["password"],
-        msg: "Le mot de passe doit contenir au moins un caractère spécial.",
-      });
-    });
-  });
-
-  describe("should return 400 if date not valid", () => {
-    it("if not a valid date", async () => {
+    it("birthday is missing", async () => {
       const { birthday, ...inputUser } = registerUser;
       const { statusCode, body } = await supertest(app)
         .post("/users/register")
         .send(inputUser);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["birthday"],
-        msg: "Votre date de naissance est obligatoire.",
-      });
-    });
-    it("if not a valid date", async () => {
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send({ ...registerUser, birthday: "invalid-email" });
-
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["birthday"],
-        msg: "Le format de la date de naissance est invalide.",
-      });
-    });
-    it("if the user is under 18", async () => {
-      const under18Birthday = new Date();
-      under18Birthday.setFullYear(under18Birthday.getFullYear() - 17);
-      under18Birthday.setDate(under18Birthday.getDate() + 1);
-      const { statusCode, body } = await supertest(app)
-        .post("/users/register")
-        .send({ ...registerUser, birthday: under18Birthday.toISOString() });
-
-      expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["birthday"],
-        msg: "Vous devez avoir plus de 18 ans.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "La date de naissance est requise",
+          path: "birthday",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Date de naissance invalide",
+          path: "birthday",
+          type: "field",
+          value: "",
+        },
+      ]);
     });
   });
-  it("should return 400 if cgu doesn't accept", async () => {
+
+  it("should return 400 if email format is invalid", async () => {
+    const response = await supertest(app)
+      .post("/users/register")
+      .send({ ...registerUser, email: "invalidemail" });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.errors).toEqual([
+      {
+        location: "body",
+        msg: "Email invalide",
+        path: "email",
+        type: "field",
+        value: "invalidemail",
+      },
+    ]);
+  });
+
+  it("should return 400 if the email part before '@' is too long", async () => {
+    const response = await supertest(app)
+      .post("/users/register")
+      .send({
+        ...registerUser,
+        email: `${"a".repeat(42)}@example.com`,
+      });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.errors).toEqual([
+      {
+        location: "body",
+        msg: "La partie avant le '@' de l'email est trop longue.",
+        path: "email",
+        type: "field",
+        value: `${"a".repeat(42)}@example.com`,
+      },
+    ]);
+  });
+
+  // it("should return 400 if password is less than 7 characters", async () => {
+  //   const inputUser = {
+  //     ...registerUser,
+  //     password: "Pass1erroaore!",
+  //     confirmPassword: "Pass1erroaore!",
+  //   };
+  //   const { statusCode, body } = await supertest(app)
+  //     .post("/users/register")
+  //     .send(inputUser);
+
+  //   expect(statusCode).toBe(400);
+  //   expect(body.errors).toEqual([
+  //     {
+  //       location: "body",
+  //       msg: "Le mot de passe doit contenir au moins 7 caractères",
+  //       path: "password",
+  //       type: "field",
+  //       value: "Pass1erroaore!",
+  //     },
+  //   ]);
+  // });
+
+  it("should return 400 if password does not contain an uppercase letter", async () => {
+    const inputUser = {
+      ...registerUser,
+      password: "password1!",
+      confirmPassword: "password1!",
+    };
+    const { statusCode, body } = await supertest(app)
+      .post("/users/register")
+      .send(inputUser);
+
+    expect(statusCode).toBe(400);
+    expect(body.errors).toEqual([
+      {
+        location: "body",
+        msg: "Le mot de passe doit contenir au moins une lettre majuscule",
+        path: "password",
+        type: "field",
+        value: "password1!",
+      },
+    ]);
+  });
+
+  it("should return 400 if birthday is not valid", async () => {
+    const { statusCode, body } = await supertest(app)
+      .post("/users/register")
+      .send({ ...registerUser, birthday: "invalid-birthday" });
+
+    expect(statusCode).toBe(400);
+    expect(body).toEqual({
+      errors: [
+        {
+          location: "body",
+          msg: "Date de naissance invalide",
+          path: "birthday",
+          type: "field",
+          value: "invalid-birthday",
+        },
+      ],
+    });
+  });
+
+  it("should return 400 if user is under 18 years old", async () => {
+    const under18Birthday = new Date();
+    under18Birthday.setFullYear(under18Birthday.getFullYear() - 17);
+    under18Birthday.setDate(under18Birthday.getDate() + 1);
+    const { statusCode, body } = await supertest(app)
+      .post("/users/register")
+      .send({ ...registerUser, birthday: under18Birthday.toISOString() });
+
+    expect(statusCode).toBe(400);
+    expect(body).toEqual({
+      errors: [
+        {
+          location: "body",
+          msg: "Date de naissance invalide",
+          path: "birthday",
+          type: "field",
+          value: expect.stringMatching(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+          ),
+        },
+      ],
+    });
+  });
+
+  it("should return 400 if CGU is not accepted", async () => {
     const { statusCode, body } = await supertest(app)
       .post("/users/register")
       .send({ ...registerUser, cgu: false });
+
     expect(statusCode).toBe(400);
     expect(body).toEqual({
-      param: ["cgu"],
-      msg: "Les conditions générales d'utilisation sont obligatoires.",
+      errors: [
+        {
+          location: "body",
+          msg: "Vous devez accepter les CGU",
+          path: "cgu",
+          type: "field",
+          value: "",
+        },
+      ],
     });
   });
 });

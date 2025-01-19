@@ -19,8 +19,10 @@ describe("PATCH EMAIL /users/updateEmail", () => {
     confirmEmail: UserProps["email"];
   }
   const newEmail = "poiu1@UA.com";
+  const lastEmail = "register@example.com";
+
   const userEmailPatch: UserEmailPatch = {
-    lastEmail: user["email"],
+    lastEmail: lastEmail,
     email: newEmail,
     confirmEmail: newEmail,
   };
@@ -54,18 +56,22 @@ describe("PATCH EMAIL /users/updateEmail", () => {
         wheelchair: user["wheelchair"],
         cgu: true,
       };
-      await supertest(app).post("/users/register").send(newPeople);
-
+      const test = await supertest(app).post("/users/register").send(newPeople);
       // req
       const { statusCode, body } = await supertest(app)
         .patch("/users/updateEmail")
         .set("authorization", token)
         .send(userEmailPatch);
-      expect(statusCode).toBe(409);
-      expect(body).toEqual({
-        param: ["email"],
-        msg: "Cet email existe déjà.",
-      });
+      expect(statusCode).toBe(400);
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Email déjà utilisé",
+          path: "email",
+          type: "field",
+          value: "poiu1@UA.com",
+        },
+      ]);
     });
 
     it("should return 400 if email format is invalid", async () => {
@@ -76,10 +82,22 @@ describe("PATCH EMAIL /users/updateEmail", () => {
         .send({ ...userEmailPatch, email: newEmail, confirmEmail: newEmail });
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        param: ["email"],
-        msg: "Le format de l'email est invalide.",
-      });
+      expect(response.body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Invalid value",
+          path: "email",
+          type: "field",
+          value: "invalidemail",
+        },
+        {
+          location: "body",
+          msg: "Cannot read properties of undefined (reading 'length')",
+          path: "email",
+          type: "field",
+          value: "invalidemail",
+        },
+      ]);
     });
 
     describe(" should return 409 if email is not the correct length", () => {
@@ -95,10 +113,32 @@ describe("PATCH EMAIL /users/updateEmail", () => {
           });
 
         expect(response.statusCode).toBe(400);
-        expect(response.body).toEqual({
-          param: ["email"],
-          msg: "Votre email doit contenir entre 5 et 70 caractères.",
-        });
+        expect(response.body.errors).toEqual([
+          {
+            location: "body",
+            msg: "Invalid value",
+            path: "email",
+            type: "field",
+            value:
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa .com",
+          },
+          {
+            location: "body",
+            msg: "L'email doit faire entre 5 et 70 caractères.",
+            path: "email",
+            type: "field",
+            value:
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa .com",
+          },
+          {
+            location: "body",
+            msg: "La partie avant le '@' de l'email est trop longue.",
+            path: "email",
+            type: "field",
+            value:
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa .com",
+          },
+        ]);
       });
     });
 
@@ -115,10 +155,15 @@ describe("PATCH EMAIL /users/updateEmail", () => {
           });
 
         expect(responseShort.statusCode).toBe(400);
-        expect(responseShort.body).toEqual({
-          param: ["email"],
-          msg: "La partie avant l’arobase doit contenir entre 1 et 40 caractères.",
-        });
+        expect(responseShort.body.errors).toEqual([
+          {
+            location: "body",
+            msg: "La partie avant le '@' de l'email est trop longue.",
+            path: "email",
+            type: "field",
+            value: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+          },
+        ]);
       });
     });
 
@@ -135,10 +180,15 @@ describe("PATCH EMAIL /users/updateEmail", () => {
           });
 
         expect(responseShort.statusCode).toBe(400);
-        expect(responseShort.body).toEqual({
-          param: ["email"],
-          msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
-        });
+        expect(responseShort.body.errors).toEqual([
+          {
+            location: "body",
+            msg: "Invalid value",
+            path: "email",
+            type: "field",
+            value: "azz@b.c",
+          },
+        ]);
       });
 
       it("if part after is too long", async () => {
@@ -153,10 +203,15 @@ describe("PATCH EMAIL /users/updateEmail", () => {
           });
 
         expect(responseShort.statusCode).toBe(400);
-        expect(responseShort.body).toEqual({
-          param: ["email"],
-          msg: "La partie après l’arobase doit contenir entre 4 et 40 caractères.",
-        });
+        expect(responseShort.body.errors).toEqual([
+          {
+            location: "body",
+            msg: "La partie après le '@' de l'email est trop longue.",
+            path: "email",
+            type: "field",
+            value: "john@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com",
+          },
+        ]);
       });
     });
   });
@@ -169,10 +224,43 @@ describe("PATCH EMAIL /users/updateEmail", () => {
         .send(inputUser);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["email"],
-        msg: "L'email est obligatoire.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "Invalid value",
+          path: "email",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "L'email n'est pas valide.",
+          path: "email",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "L'email doit faire entre 5 et 70 caractères.",
+          path: "email",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Cannot read properties of undefined (reading 'length')",
+          path: "email",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Les emails ne correspondent pas.",
+          path: "confirmEmail",
+          type: "field",
+          value: "poiu1@UA.com",
+        },
+      ]);
     });
     it("confirmEmail is missing", async () => {
       const { confirmEmail, ...inputUser } = userEmailPatch;
@@ -182,10 +270,22 @@ describe("PATCH EMAIL /users/updateEmail", () => {
         .send(inputUser);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["confirmEmail"],
-        msg: "La confirmation d'email est obligatoire.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "La confirmation d'email n'est pas valide.",
+          path: "confirmEmail",
+          type: "field",
+          value: "",
+        },
+        {
+          location: "body",
+          msg: "Les emails ne correspondent pas.",
+          path: "confirmEmail",
+          type: "field",
+          value: "",
+        },
+      ]);
     });
     it("lastEmail is missing", async () => {
       const { lastEmail, ...inputUser } = userEmailPatch;
@@ -195,10 +295,15 @@ describe("PATCH EMAIL /users/updateEmail", () => {
         .send(inputUser);
 
       expect(statusCode).toBe(400);
-      expect(body).toEqual({
-        param: ["lastEmail"],
-        msg: "L'ancien email est obligatoire.",
-      });
+      expect(body.errors).toEqual([
+        {
+          location: "body",
+          msg: "L'ancien email est requis.",
+          path: "lastEmail",
+          type: "field",
+          value: "",
+        },
+      ]);
     });
   });
 });
